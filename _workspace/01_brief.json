@@ -1,0 +1,52 @@
+{
+  "campaign_id": "busan-highlights-full-day",
+  "topic": "Busan Highlights 전일 코스 — 전용 차량으로 하루에 네 곳을 제대로 도는 것",
+  "persona": "visitor",
+  "angle": "부산 첫 방문 개인·가족이 이동 동선 때문에 하루를 반만 쓰게 되는데, 전용 차량과 맞춤 일정이 온종일을 돌려준다.",
+  "competitor_gap": "단체 버스 투어는 출발·집결 시간이 고정이라 각 지점 체류가 짧고, 자유여행+택시는 감천-자갈치-기장 용궁사-광안리 동선을 하루에 못 잇는다. 전용 차량만 네 곳을 한 흐름으로 묶는다.",
+  "key_message": "A private car turns four scattered stops into one unbroken day.",
+  "note": "부기 미등장 세트. 라이선스 서면 승인 전이라 캐릭터 없이 카피·레이아웃만으로 브랜딩 방향을 검증하는 것이 목적이다.",
+  "card_skeleton": [
+    { "n": 1, "role": "HOOK",      "archetype": "lay-bleed", "bg": "blue",  "display_candidates": ["ONE DAY", "IN BUSAN", "DONE RIGHT"], "sub": "A private car. A driver who knows the roads.", "boogie": false },
+    { "n": 2, "role": "PROBLEM",   "archetype": "lay-split", "bg": "blue",  "display_candidates": ["HALF A DAY", "ON THE ROAD"], "sub": "Group tours run on a timetable. Yours doesn't have to.", "boogie": false },
+    { "n": 3, "role": "SOLUTION",  "archetype": "lay-stack", "bg": "white", "display_candidates": ["YOUR CAR.", "YOUR CLOCK."], "sub": "Start at nine. Or noon. Stay at Gamcheon while the light holds.", "boogie": false },
+    { "n": 4, "role": "PROOF",     "archetype": "lay-quote", "bg": "ink",   "display_candidates": ["THREE ROUTES"], "sub": "Full day or half day. Busan or Seoul. Same private car.", "boogie": false },
+    { "n": 5, "role": "ITINERARY", "archetype": "lay-steps", "bg": "blue",  "display_candidates": ["ONE FULL DAY"], "sub": "Busan Highlights 실제 코스 4개 지점", "boogie": false },
+    { "n": 6, "role": "CTA",       "archetype": "lay-cta",   "bg": "grad",  "display_candidates": ["TELL US", "YOUR DAY"], "sub": "We build the route around it.", "boogie": false }
+  ],
+  "seo": {
+    "primary": "busan private tour",
+    "secondary": ["busan day trip with driver", "busan private car tour", "gamcheon culture village tour", "haedong yonggungsa tour"],
+    "entities": ["Gamcheon Culture Village", "Jagalchi Market", "Gukje Market", "Haedong Yonggungsa", "Sky Capsule", "Gwangalli", "Haeundae", "Songdo Skywalk"]
+  },
+  "cta": {
+    "card": "Book a private day",
+    "blog": "See the three Busan routes",
+    "threads": "Ask us for a route",
+    "linkedin": "Plan a visit for your team or family",
+    "x": "Plan your day"
+  },
+  "landing": {
+    "url": "https://www.sojournkorea.net/private-tour",
+    "status": "200",
+    "checked_at": "2026-08-03"
+  },
+  "facts": [
+    { "claim": "Busan Highlights는 전일(full day) 코스다", "source": "landing page 2026-08-03" },
+    { "claim": "Busan Highlights 코스 구성: Gamcheon Culture Village, Jagalchi & Gukje markets, Haedong Yonggungsa Temple, Sky Capsule & Gwangalli night view", "source": "landing page 2026-08-03" },
+    { "claim": "Markets & Food는 반일 코스, Jagalchi·Gukje·Bujeon과 거리 음식 시식 포함", "source": "landing page 2026-08-03" },
+    { "claim": "Coast & Culture는 반일 코스, Haeundae·Huinnyeoul·Songdo Skywalk/Taejongdae 포함", "source": "landing page 2026-08-03" },
+    { "claim": "부산 3코스 + 서울 3코스 + 크루즈 항구 일정 투어를 제공한다", "source": "landing page 2026-08-03" },
+    { "claim": "전용 차량과 맞춤 일정으로 운영된다", "source": "landing page 2026-08-03" },
+    { "claim": "페이지 내 문의 폼으로 예약을 접수한다 (성명·이메일·WhatsApp·회사·도시·날짜·인원·기간)", "source": "landing page 2026-08-03" },
+    { "claim": "요금", "source": "UNVERIFIED — 랜딩 페이지에 가격 표기 없음. 전 산출물에서 가격 언급 금지" },
+    { "claim": "코스별 정확한 소요 시간(시간 단위)", "source": "UNVERIFIED — full day / half day 구분만 확인됨" },
+    { "claim": "고객 후기", "source": "UNVERIFIED — 검증된 후기 없음. 후기 카드를 만들지 마라" }
+  ],
+  "banned_extra": [
+    "가격·요금 일체",
+    "정확한 소요 시간 (예: 8시간)",
+    "지어낸 고객 후기·평점",
+    "혼잡도 주장 (예: before the crowds) — 검증 불가"
+  ]
+}

@@ -1,76 +1,190 @@
-# UI 디자인 가이드
+# UI 디자인 가이드 — 카드뉴스
+
+이 프로젝트의 UI는 웹 화면이 아니라 **1080×1080 정지 이미지 6장**이다. 아래 값들은 전부 `.claude/skills/cardnews-render/assets/brand.css`에 구현되어 있다. **문서와 코드가 어긋나면 코드가 맞다** — 값을 바꿀 때는 CSS를 고치고 이 문서를 갱신한다.
 
 ## 디자인 원칙
-1. {원칙 1 — 예: "도구처럼 보여야 한다. 마케팅 페이지가 아니라 매일 쓰는 대시보드."}
-2. {원칙 2}
-3. {원칙 3}
+
+1. **초대형 워드가 화면을 지배한다.** 헤드라인이 곧 레이아웃이다. 문구가 길어지면 크기를 줄이는 게 아니라 **단어를 바꾼다.** 210px를 108px로 내리는 순간 이 브랜드가 아니게 된다.
+2. **6장이 한 세트로 읽혀야 한다.** 상단 락업과 하단 페이저를 6장 전부 같은 자리에 고정하고, 배경색에 리듬을 준다. 인스타 프로필 3열 그리드로 잘렸을 때가 진짜 시험대다.
+3. **여백은 미완성이 아니라 선택이어야 한다.** 빈 공간이 남으면 콜라주 요소로 대각선 흐름을 만들거나 카피를 키운다. 이유 없이 비어 있으면 시안이 덜 된 것으로 읽힌다.
+4. **모든 사실 주장은 팩트 원장에서 온다.** 디자인이 아무리 좋아도 틀린 숫자가 박히면 회수가 안 된다.
 
 ## AI 슬롭 안티패턴 — 하지 마라
+
 | 금지 사항 | 이유 |
 |-----------|------|
-| backdrop-filter: blur() | glass morphism은 AI 템플릿의 가장 흔한 징후 |
+| `backdrop-filter: blur()` | glass morphism은 AI 템플릿의 가장 흔한 징후. 대비가 부족하면 반투명이 아니라 **솔리드 컬러 바**를 깔아라 |
 | gradient-text (배경 그라데이션 텍스트) | AI가 만든 SaaS 랜딩의 1번 특징 |
-| "Powered by AI" 배지 | 기능이 아니라 장식. 사용자에게 가치 없음 |
-| box-shadow 글로우 애니메이션 | 네온 글로우 = AI 슬롭 |
-| 보라/인디고 브랜드 색상 | "AI = 보라색" 클리셰 |
-| 모든 카드에 동일한 rounded-2xl | 균일한 둥근 모서리는 템플릿 느낌 |
-| 배경 gradient orb (blur-3xl 원형) | 모든 AI 랜딩 페이지에 있는 장식 |
+| "Powered by AI" 배지 | 기능이 아니라 장식 |
+| box-shadow 글로우 | 네온 글로우 = AI 슬롭. 그림자는 `.quote-box`의 오프셋 솔리드(24px 24px 0)만 허용 |
+| 보라/인디고 브랜드 색상 | "AI = 보라색" 클리셰이자 브랜드 블루와 충돌 |
+| 모든 요소에 동일한 rounded 처리 | 이 브랜드는 각진 블록이 기본. 둥근 모서리는 `.blob` 원형에만 |
+| 배경 gradient orb (blur-3xl 원형) | 모든 AI 랜딩에 있는 장식. 우리 콜라주 요소는 **선명한 솔리드 도형**이다 |
+| `hidden gem`, `must-visit`, `breathtaking` | 모든 여행 상품이 쓰는 무의미어라 차별점을 지운다 |
 
 ## 색상
+
 ### 배경
 | 용도 | 값 |
 |------|------|
-| 페이지 | {예: #0a0a0a} |
-| 카드 | {예: #141414} |
+| 카드 배경 — 주 | `--blue` `#1C3FE8` |
+| 카드 배경 — 반전 | `--white` `#FFFFFF` |
+| 카드 배경 — 다크 | `--ink` `#0A0E1A` |
+| 카드 배경 — 그라데이션 | `--blue` → `--blue-deep` `#0B1F8C` (160deg). **유일하게 허용된 그라데이션** |
+| 콜라주 지면 | `--paper` `#F1F0EC` |
 
 ### 텍스트
 | 용도 | 값 |
 |------|------|
-| 주 텍스트 | {예: text-white} |
-| 본문 | {예: text-neutral-300} |
-| 보조 | {예: text-neutral-400} |
-| 비활성 | {예: text-neutral-500} |
+| 주 텍스트 (blue·ink·grad 배경) | `--white` |
+| 주 텍스트 (white 배경) | `--ink` |
+| 보조 (`.attrib`, `.step .d`) | 현재 색 opacity 0.6~0.75 |
+| 락업 핸들 | opacity 0.7 |
+| 페이저 | opacity 0.55 |
+| 저작권 표기 (`.char-credit`) | opacity 0.55, 16px |
 
-### 데이터/시맨틱 색상
+### 액센트·시맨틱
 | 용도 | 값 |
 |------|------|
-| {긍정/성공} | {예: #22c55e} |
-| {부정/에러} | {예: #ef4444} |
-| {중립/기본} | {예: #525252} |
+| 액센트 1 — 강조 박스, CTA 밴드, 링·슬래시 | `--coral` `#FF4438` (부기 안경 색에서 추출) |
+| 액센트 2 — 번호, 강조 워드, 도트 | `--sand` `#F5C24B` (부기 부리 색에서 추출) |
+
+**사용 규칙**
+- 카드 1장의 배경은 blue / white / ink / grad 중 **정확히 하나**
+- 액센트는 **카드당 1종만**, 면적 15% 이하
+- 6장 배경 리듬 예시: `blue → blue+white → white → ink → blue → grad`. white와 ink가 연속되지 않게 한다
 
 ## 컴포넌트
-### 카드
+
+웹 UI의 버튼·입력 필드에 해당하는 것이 없다. 카드에는 아래 5개만 있다.
+
+### 락업 (`.lockup`) — 6장 고정
 ```
-{예: rounded-lg bg-[#141414] border border-neutral-800 p-6}
+top/left/right: 72px · 좌 SOJOURN KOREA(900) · 우 @handle(600, opacity .7)
+22px / letter-spacing .14em / UPPERCASE
+```
+6장을 한 세트로 묶는 유일한 장치다. 위치를 카드마다 바꾸지 마라.
+
+### 페이저 (`.pager`) — 6장 고정
+```
+bottom/right: 72px · "01 / 06" · 22px / opacity .55
 ```
 
-### 버튼
+### 인용 박스 (`.quote-box`)
 ```
-Primary: {예: rounded-lg bg-white text-black hover:bg-neutral-200}
-Text:    {예: text-neutral-500 hover:text-neutral-300}
+bg white · color ink · padding 72px 64px · max-width 760px
+box-shadow: 24px 24px 0 var(--coral)   ← 블러 없는 오프셋 솔리드
 ```
 
-### 입력 필드
+### 스텝 행 (`.step`)
 ```
-{예: rounded-lg bg-neutral-900 border border-neutral-800 px-4 py-3}
+번호 .n  Anton 76px / sand / min-width 110px
+제목 .t  Inter 700 42px   (display:block 필수 — inline이면 설명과 한 줄로 붙는다)
+설명 .d  Inter 400 26px / opacity .75
+구분선   상단 3px solid currentColor
 ```
+**4행이 상한이다.** 5행부터는 마지막 행이 페이저 아래로 밀린다.
+
+### CTA 밴드 (`.cta-band`)
+```
+높이 200px · bg coral · 좌 문구 Inter 900 46px · 우 URL Inter 600 28px
+```
+
+### 콜라주 요소 (`.blob`) — 카드당 최대 2개
+```
+.dot    260×260 원형 · sand
+.ring   320×320 원형 테두리 14px · coral
+.slash  520×26 막대 · coral · rotate(-18deg)
+```
+z-index 1로 텍스트 뒤에 깔린다. 프레임 밖으로 나가게 배치해 잘린 형태로 쓰는 것이 기본이다.
 
 ## 레이아웃
-- 전체 너비: {예: max-w-5xl}
-- 정렬: {예: 좌측 정렬 기본. 중앙 정렬 금지}
-- 간격: {예: gap-3~4, 섹션 간 space-y-8}
+
+- 캔버스 **1080 × 1080** 고정
+- 세이프에어리어 **사방 72px** — 락업·페이저·본문·저작권 표기는 이 안에
+- **하단 100px에 의미 있는 텍스트 금지** (인스타 피드 그리드 크롭)
+- 정렬: **좌측 정렬 기본**. 중앙 정렬은 `.lay-quote`의 박스 배치에만
+- 블리드: 초대형 워드는 좌우 최대 -48px까지 프레임 밖으로 나가도 된다. **단어의 첫 글자는 절대 자르지 마라**
+
+### 레이아웃 아키타입 6종
+
+카드마다 새로 짜지 말고 여기서 고른다. 6장이 한 세트로 읽히고 검수가 기계적으로 가능해진다.
+
+| 클래스 | 구성 | 역할 |
+|--------|------|------|
+| `.lay-bleed` | 초대형 워드 블리드 + 캐릭터 오버랩 | HOOK |
+| `.lay-split` | 사선 컷 상하 2분할, 색 반전 | PROBLEM |
+| `.lay-stack` | 좌측 텍스트 스택 + 우측 캐릭터 (`.no-char`로 여백 회수) | SOLUTION |
+| `.lay-quote` | 인용/팩트 박스 (`.with-head`로 헤드라인 추가) | PROOF |
+| `.lay-steps` | 번호 리스트 최대 4행 | ITINERARY |
+| `.lay-cta` | 하단 CTA 밴드 + 캐릭터 풀샷 | CTA |
+
+`.lay-steps`, `.lay-quote.with-head`, `.lay-cta`는 `padding-top: 190px`로 락업 아래를 비워둔다. 이 여백을 줄이면 본문이 로고 밑으로 파고든다.
 
 ## 타이포그래피
+
 | 용도 | 스타일 |
 |------|--------|
-| 페이지 제목 | {예: text-4xl font-semibold text-white} |
-| 카드 제목 | {예: text-sm font-medium text-neutral-400} |
-| 본문 | {예: text-sm text-neutral-300 leading-relaxed} |
+| Display XL | Anton 210px / line-height .86 / letter-spacing -.02em / UPPERCASE |
+| Display L | Anton 152px (같은 메트릭) |
+| Display M | Anton 108px (같은 메트릭) |
+| Sub | Inter 700 36px / 1.25 |
+| Body | Inter 400 28px / 1.45 |
+| Label | Inter 600 22px / UPPERCASE / letter-spacing .14em |
+
+폴백: Anton → `Arial Black`, Impact / Inter → `Helvetica Neue`, Arial
+
+**Display 카피 규칙**
+- **1~3 단어, 14자 이내.** 문장이 아니라 덩어리다
+- 두 줄 이상이면 **줄마다 다른 처리**를 준다. 전부 같으면 그냥 큰 글씨일 뿐 디자인이 아니다
+
+| 처리 | 클래스 | 비고 |
+|------|--------|------|
+| 솔리드 | `.t-solid` | |
+| 액센트 컬러 | `.t-accent` / `.t-sand` | |
+| 하이라이트 박스 | `.t-box` / `.t-box-sand` | inline-block, 좌우 18px |
+| 아웃라인 | `.t-outline` | 스트로크 3px. **`currentColor`를 쓰지 마라** — `color`가 transparent라 글자가 통째로 사라진다. 배경별로 색을 명시한다 |
+
+## 사진
+
+레퍼런스 두 장 모두 화면의 절반이 이미지다. **이미지 없는 카드는 미완성으로 읽힌다.**
+
+### 슬롯 구분 — 이게 규칙의 핵심
+| 슬롯 | 무엇 | AI 생성 |
+|------|------|---------|
+| `place` | 실제 방문을 약속한 장소 — 감천·자갈치·용궁사·광안대교 | **금지** (ADR-010) |
+| `concept` | 특정 장소가 아닌 개념·소품·질감 — 버스 내부, 시계, 손, 지도 | 허용 |
+
+모든 이미지는 `assets/photos/manifest.json`에 등재하고, `<img>`에 `data-photo`와 `data-slot`을 붙인다. 렌더러가 미등재·슬롯 불일치·place 슬롯의 AI 이미지를 차단한다.
+
+### 트리트먼트
+```
+.photo-mono    흑백 고대비 — reference1의 콜라주 레지스터
+.photo-duo     블루 듀오톤 (mix-blend-mode: luminosity + 브랜드 배경)
+               .on-ink / .on-coral 로 지면 변경
+.photo-frame   coral 24px 24px 0 오프셋 솔리드 그림자 (.shadow-sand 변형)
+.photo-cut     투명 PNG 누끼, 프레임 없음
+.photo-credit  스톡·라이선스 이미지의 출처 표기 (필수)
+```
+
+듀오톤이 중요한 이유: 서로 다른 날 다른 폰으로 찍은 사진이 섞여도 한 색 체계로 묶인다. 화이트밸런스를 맞출 필요가 없어진다.
+
+**블러 필터를 쓰지 마라.** 브랜드가 glass/blur를 금지하기도 하지만, 흐린 랜드마크는 **검증할 수 없는 랜드마크**이기도 하다.
+
+### 배치
+- 콜라주는 타이포와 겹쳐도 된다. 단 **대형 워드를 읽을 수 없게 만들면 안 된다**
+- 고정 락업·페이저 위에는 절대 올리지 않는다 (렌더러가 차단)
+- 사선 컷(`.lay-split`) 경계를 가로지르게 놓으면 두 면이 하나로 묶인다
 
 ## 애니메이션
-- {허용할 애니메이션만 나열. 예: fade-in (0.4s), slide-up (0.5s)}
-- {그 외 모든 애니메이션 금지}
 
-## 아이콘
-- {예: SVG 인라인, strokeWidth 1.5}
-- {예: 아이콘 컨테이너(둥근 배경 박스)로 감싸지 않는다}
+**없다.** 산출물이 정지 이미지 PNG다. CSS 애니메이션·트랜지션을 넣지 마라 — 스크린샷에 잡히지 않거나, 캡처 타이밍에 따라 중간 프레임이 찍혀 6장이 서로 달라진다.
+
+릴스(9:16)의 모션은 별도 규칙이다. 카메라 워크는 slow push-in / pan 정도로 절제하고, 부기가 등장하는 컷은 **원본 에셋을 프로그램적으로만** 움직인다(위치 이동, 비율 유지 확대·축소, 페이드).
+
+## 아이콘 · 캐릭터
+
+- 아이콘 세트를 쓰지 않는다. 정보 위계는 타이포 크기와 번호(`.step .n`)로 만든다
+- 캐릭터는 **부산시 소통캐릭터 부기** 하나뿐이다. 다른 일러스트·스톡 이미지를 섞지 마라
+- 부기는 장식이 아니라 **매 카드의 화자**다. 6장 중 3~5장, 01에는 반드시, 최소 높이 360px
+- **부기는 부산광역시 저작물이다.** 좌우 반전·비율 왜곡·색 변경·AI 생성 전부 금지이고, 등장 카드마다 저작권 표기가 필수다. 전체 규정: `.claude/skills/sojourn-brand-system/references/boogie-usage.md`

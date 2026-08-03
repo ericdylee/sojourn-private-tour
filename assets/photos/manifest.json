@@ -1,0 +1,27 @@
+{
+  "_readme": [
+    "카드뉴스·블로그·SNS에 쓰는 모든 이미지의 원장. 팩트 원장(01_brief.json facts)과 같은 역할을 이미지에 대해 한다.",
+    "여기 등재되지 않은 이미지는 산출물에 넣지 마라. 렌더러가 차단한다.",
+    "slot: 'place' = 실제 방문 약속 장소. AI 생성 금지 (ADR-010).",
+    "slot: 'concept' = 특정 장소가 아닌 개념·소품·질감. AI 생성 허용.",
+    "rights: 'own' | 'unsplash' | 'licensed:<출처>' | 'ai:<모델>'"
+  ],
+  "photos": [
+    {
+      "file": "concept/crowded-bus.png",
+      "slot": "concept",
+      "subject": "Interior of a crowded tour bus, black and white cutout",
+      "ai_generated": true,
+      "rights": "ai:higgsfield/marketing_studio_image",
+      "shot_at": null,
+      "note": "카드 02 PROBLEM. 특정 버스·특정 회사가 아니므로 장소 약속과 무관하다."
+    }
+  ],
+  "wanted": [
+    { "slot": "place", "subject": "Gamcheon Culture Village — 골목 위에서 내려다본 계단식 지붕", "for": "카드 01 HOOK, 05 스텝1, 블로그 히어로" },
+    { "slot": "place", "subject": "Jagalchi Market — 좌판 위 해산물 클로즈업", "for": "카드 05 스텝2" },
+    { "slot": "place", "subject": "Haedong Yonggungsa — 바위 위 전각과 바다", "for": "카드 05 스텝3" },
+    { "slot": "place", "subject": "Gwangalli — 해질녘 광안대교 조명", "for": "카드 05 스텝4, 06 CTA" },
+    { "slot": "place", "subject": "전용 차량 실내 — 뒷좌석에서 본 앞 유리와 해안도로", "for": "카드 03 SOLUTION" }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "sojourn-cardnews-render",
+  "private": true,
+  "type": "module",
+  "description": "Playwright renderer for Sojourn card news. Kept out of the repo root on purpose: a root package.json makes the repo Stop hook run npm lint/build/test, which do not exist here.",
+  "scripts": {
+    "render": "node render-cards.mjs",
+    "setup": "npm i && npx playwright install chromium"
+  },
+  "dependencies": {
+    "playwright": "^1.62.1"
+  }
+}

@@ -7,3 +7,17 @@ tsconfig.tsbuildinfo
 # phase execution outputs
 phases/**/phase*-output.json
 phases/**/step*-output.json
+
+# 부산시 부기 공식 가이드북 — 로컬 보관만.
+# 가이드북 본문에 "외부에 무단 유출, 복제할 수 없습니다"가 명시되어 있어
+# 저장소에 두지 않는다. 추출된 규정은 아래 파일에 전부 옮겨져 있다:
+#   .claude/skills/sojourn-brand-system/references/boogie-usage.md
+references/*.pdf
+
+# macOS
+.DS_Store
+
+# 환경변수 — 값이 비어 있어도 추적하지 않는다 (향후 API 키 유출 방지)
+.env
+.env.*
+!.env.example

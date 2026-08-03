@@ -1,0 +1,301 @@
+/* Sojourn Korea — Busan Private Tour card news
+   1080 x 1080 card system. Tokens are owned by sojourn-brand-system/SKILL.md.
+   Do not redefine colors or type sizes inline; use the classes below. */
+
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;700;900&display=swap');
+
+:root {
+  --blue: #1C3FE8;
+  --blue-deep: #0B1F8C;
+  --ink: #0A0E1A;
+  --white: #FFFFFF;
+  --coral: #FF4438;
+  --sand: #F5C24B;
+  --paper: #F1F0EC;
+
+  --pad: 72px;         /* safe area */
+  --bottom-guard: 100px; /* no meaningful text below this from the bottom */
+
+  --display: 'Anton', 'Arial Black', Impact, sans-serif;
+  --text: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #555;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  padding: 40px;
+  font-family: var(--text);
+}
+
+/* ---------- card shell ---------- */
+
+.card {
+  position: relative;
+  width: 1080px;
+  height: 1080px;
+  overflow: hidden;
+  color: var(--white);
+  background: var(--blue);
+  isolation: isolate;
+}
+
+.card.bg-blue  { background: var(--blue); color: var(--white); }
+.card.bg-white { background: var(--white); color: var(--ink); }
+.card.bg-ink   { background: var(--ink); color: var(--white); }
+.card.bg-grad  { background: linear-gradient(160deg, var(--blue) 0%, var(--blue-deep) 100%); color: var(--white); }
+
+/* fixed lockup — identical position on all six cards */
+.lockup {
+  position: absolute;
+  top: var(--pad);
+  left: var(--pad);
+  right: var(--pad);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font: 600 22px/1 var(--text);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  z-index: 5;
+}
+.lockup .mark { font-weight: 900; letter-spacing: 0.18em; }
+.lockup .handle { opacity: 0.7; }
+
+.pager {
+  position: absolute;
+  bottom: var(--pad);
+  right: var(--pad);
+  font: 600 22px/1 var(--text);
+  letter-spacing: 0.14em;
+  opacity: 0.55;
+  z-index: 5;
+}
+
+/* ---------- typography ---------- */
+
+.display {
+  font-family: var(--display);
+  text-transform: uppercase;
+  line-height: 0.86;
+  letter-spacing: -0.02em;
+}
+.d-xl { font-size: 210px; }
+.d-l  { font-size: 152px; }
+.d-m  { font-size: 108px; }
+
+/* layered treatments — give each display line a different one */
+.t-solid   { color: currentColor; }
+.t-accent  { color: var(--coral); }
+.t-sand    { color: var(--sand); }
+/* Never use currentColor for the stroke here: `color` is transparent, so
+   currentColor resolves to transparent and the word disappears entirely. */
+.t-outline {
+  color: transparent;
+  -webkit-text-stroke: 3px var(--white);
+  paint-order: stroke fill;
+}
+.card.bg-white .t-outline { -webkit-text-stroke-color: var(--ink); }
+.t-outline.on-accent { -webkit-text-stroke-color: var(--coral); }
+.t-box {
+  background: var(--coral);
+  color: var(--white);
+  padding: 0 18px;
+  display: inline-block;
+}
+.t-box-sand { background: var(--sand); color: var(--ink); padding: 0 18px; display: inline-block; }
+
+/* bleed: let the word run past the frame. never clip the first letter. */
+.bleed-r { margin-right: -48px; }
+.bleed-l { margin-left: -48px; }
+
+.sub   { font: 700 36px/1.25 var(--text); }
+.body  { font: 400 28px/1.45 var(--text); }
+.label { font: 600 22px/1 var(--text); letter-spacing: 0.14em; text-transform: uppercase; }
+
+/* ---------- boogie ----------
+   Busan Metropolitan City owns this character. Two hard rules live in CSS:
+
+   1. NEVER mirror it. `transform: scaleX(-1)` is a licence violation — the
+      official guide requires the smart-glasses bar to be re-applied on the
+      other side when the character is reversed, which a CSS flip cannot do.
+   2. NEVER scale one axis. Width is always `auto` off the height so the
+      eye/beak proportions stay at spec.
+
+   Every card showing the character must also carry .char-credit.
+   Full rules: sojourn-brand-system/references/boogie-usage.md */
+
+.boogie { position: absolute; z-index: 3; user-select: none; }
+.boogie img { display: block; height: 100%; width: auto; }
+
+/* Required copyright notice — beside or below the character. */
+.char-credit {
+  position: absolute;
+  z-index: 6;
+  font: 400 16px/1.3 var(--text);
+  letter-spacing: 0.02em;
+  opacity: 0.55;
+  max-width: 460px;
+}
+.char-credit.at-bottom { left: var(--pad); bottom: var(--pad); }
+
+/* For .lay-cta: clears the 200px band AND stays left of the centred character.
+   Use the short permitted form here — "© 2021. Busan Metropolitan City" — the
+   long form wraps into the character and stops being readable, and an
+   unreadable notice does not satisfy the licence. */
+.char-credit.above-band { left: var(--pad); bottom: 228px; max-width: 300px; }
+.boogie.pose-hero   { right: -30px; bottom: -20px; height: 620px; transform: rotate(-4deg); }
+.boogie.pose-side   { right: 40px;  bottom: 120px; height: 520px; transform: rotate(3deg); }
+.boogie.pose-cta    { left: 50%; bottom: 60px; height: 480px; transform: translateX(-50%) rotate(-2deg); }
+.boogie.pose-corner { right: 48px; bottom: 48px; height: 360px; }
+
+/* ---------- layout archetypes ---------- */
+
+/* 01 HOOK — oversized word bleeding off frame, boogie overlapping */
+.lay-bleed { display: flex; flex-direction: column; justify-content: center; padding: var(--pad); }
+.lay-bleed .headline { position: relative; z-index: 4; }
+.lay-bleed .sub { margin-top: 32px; max-width: 560px; position: relative; z-index: 4; }
+
+/* 02 PROBLEM — diagonal split, inverted halves */
+.lay-split { position: relative; }
+.lay-split .half-top,
+.lay-split .half-bottom { position: absolute; inset: 0; display: flex; padding: var(--pad); }
+.lay-split .half-top { align-items: flex-start; padding-top: 200px; }
+.lay-split .half-bottom {
+  background: var(--white);
+  color: var(--ink);
+  clip-path: polygon(0 62%, 100% 46%, 100% 100%, 0 100%);
+  flex-direction: column;
+  align-items: flex-start;   /* column flex: this is horizontal. flex-end right-aligns everything. */
+  justify-content: flex-end;
+  padding-bottom: 150px;
+}
+.card.bg-ink .lay-split .half-bottom { background: var(--sand); }
+
+/* 03 SOLUTION — left text stack, boogie right */
+.lay-stack { display: flex; flex-direction: column; justify-content: center; gap: 28px; padding: var(--pad); padding-right: 520px; }
+.lay-stack .display { max-width: 100%; }
+
+/* Reclaims the space reserved for the character. Required on any layout used
+   without it — otherwise the card reads as a design with a hole in it. */
+.lay-stack.no-char { padding-right: var(--pad); }
+.lay-stack.no-char .body { max-width: 720px; }
+
+/* 04 PROOF — quote card on collage ground */
+.lay-quote { display: flex; align-items: center; justify-content: center; padding: var(--pad); }
+
+/* Variant with a display headline above the box. Without it this card is the
+   only one in a set with no oversized word, which breaks the run of six. */
+.lay-quote.with-head {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 40px;
+  padding-top: 190px;
+  padding-bottom: 130px;
+}
+.lay-quote .quote-box {
+  background: var(--white);
+  color: var(--ink);
+  padding: 72px 64px;
+  max-width: 760px;
+  box-shadow: 24px 24px 0 var(--coral);
+}
+.lay-quote .quote-box .body { font-size: 34px; }
+.lay-quote .attrib { margin-top: 32px; font: 600 24px/1.3 var(--text); opacity: 0.6; }
+
+/* 05 ITINERARY — numbered rows.
+   padding-top clears the fixed lockup band; without it tall content grows
+   upward under the logo and the collision is invisible to an overflow check. */
+.lay-steps { display: flex; flex-direction: column; justify-content: center; gap: 0; padding: var(--pad); padding-top: 190px; padding-bottom: 150px; }
+.lay-steps .step {
+  display: flex;
+  align-items: baseline;
+  gap: 32px;
+  padding: 28px 0;
+  border-top: 3px solid currentColor;
+}
+/* 4 steps is the ceiling at these metrics. A 5th pushes the last row under the
+   pager — add rows only after shrinking .step padding to match. */
+.lay-steps .step:last-child { border-bottom: 3px solid currentColor; }
+.lay-steps .step .n { font-family: var(--display); font-size: 76px; line-height: 0.8; color: var(--sand); min-width: 110px; flex: 0 0 auto; }
+.lay-steps .step .txt { flex: 1 1 auto; }
+/* .t and .d must be block: as inline spans they run together on one line. */
+.lay-steps .step .t { display: block; font: 700 42px/1.15 var(--text); }
+.lay-steps .step .d { display: block; font: 400 26px/1.35 var(--text); opacity: 0.75; margin-top: 8px; }
+
+/* 06 CTA — bottom band */
+.lay-cta { display: flex; flex-direction: column; padding: var(--pad); padding-top: 190px; }
+.lay-cta .cta-band {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 200px;
+  background: var(--coral);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--pad) 0 var(--pad);
+  z-index: 4;
+}
+.lay-cta .cta-band .go { font: 900 46px/1 var(--text); letter-spacing: -0.01em; }
+.lay-cta .cta-band .url { font: 600 28px/1 var(--text); letter-spacing: 0.06em; opacity: 0.9; }
+
+/* ---------- photos ----------
+   Every <img> inside .photo needs data-photo="<key in assets/photos/manifest.json>"
+   and data-slot="place|concept". The renderer refuses to build otherwise, and
+   refuses AI-generated files in a place slot (ADR-010).
+
+   No blur filters anywhere: the brand bans glass/blur treatments, and a blurred
+   landmark is also a landmark you cannot verify. */
+
+.photo { position: absolute; z-index: 2; overflow: hidden; }
+.photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* Cutout collage — the reference language. Transparent PNG, no frame. */
+.photo-cut { overflow: visible; }
+.photo-cut img { height: 100%; width: auto; object-fit: contain; }
+
+/* Monochrome cutout, reference1's black-and-white collage register. */
+.photo-mono img { filter: grayscale(1) contrast(1.25); }
+
+/* Brand duotone: luminosity over a brand ground. Reads as one colour system
+   even when the source photos were shot on different days and phones. */
+.photo-duo { background: var(--blue); }
+.photo-duo img { mix-blend-mode: luminosity; filter: contrast(1.1); }
+.photo-duo.on-ink { background: var(--ink); }
+.photo-duo.on-coral { background: var(--coral); }
+
+/* Framed block — same offset-solid shadow as .quote-box, never a soft shadow. */
+.photo-frame { box-shadow: 24px 24px 0 var(--coral); }
+.photo-frame.shadow-sand { box-shadow: 24px 24px 0 var(--sand); }
+
+/* Source credit for licensed/stock photos. Required when rights != own. */
+.photo-credit {
+  position: absolute;
+  z-index: 6;
+  font: 400 15px/1.3 var(--text);
+  opacity: 0.5;
+  left: var(--pad);
+  bottom: var(--pad);
+}
+
+/* ---------- collage bits — use sparingly, max 2 per card ---------- */
+.blob { position: absolute; z-index: 1; }
+.blob.dot   { width: 260px; height: 260px; border-radius: 50%; background: var(--sand); }
+.blob.ring  { width: 320px; height: 320px; border-radius: 50%; border: 14px solid var(--coral); }
+.blob.slash { width: 520px; height: 26px; background: var(--coral); transform: rotate(-18deg); }
+
+/* ---------- dev-only guides (render script strips these) ---------- */
+.guides::after {
+  content: '';
+  position: absolute;
+  inset: var(--pad);
+  border: 2px dashed rgba(255, 68, 56, 0.8);
+  z-index: 99;
+  pointer-events: none;
+}
