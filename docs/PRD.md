@@ -56,8 +56,9 @@
 | 블로그 · SNS | 생산 완료 — `output/blog.md`, `output/social.json` |
 | QA 1회차 | HOLD (BLOCKER 2 · MAJOR 5 · MINOR 4) — `output/qa_report.md` |
 | QA 2회차 | **BLOCKER 0 · MAJOR 0.** 반려 7건 전부 픽셀 실측으로 해소 확인 |
-| **블로그 발행** | **완료 — 라이브.** `https://www.sojournkorea.net/blog/busan-private-tour-four-corners-one-day` (200, Article + FAQPage 구조화 데이터, sitemap 등재) |
-| 블로그 히어로 | 완료 — 개념 이미지(루트 라인 + 하루 그래디언트), gpt-image-2. `slot: "concept"`으로 원장 등재 |
+| **블로그 형식 확정** | **한 편 = 한 장소.** 매거진 기사체 — 그 장소가 뭔지·간략한 역사·위치와 가는 법·추천. 후기체가 아니다 |
+| **블로그 1편 발행** | **완료 — 라이브.** 해동용궁사 편. `https://www.sojournkorea.net/blog/haedong-yonggungsa-temple-by-the-sea` (Article + FAQPage, 사진 4장, sitemap 등재) |
+| 폐기 | 첫 글(여러 장소 물류 논증)과 추상 개념 히어로. 옛 URL은 301로 새 글에 연결 |
 | SNS 3편 | 파일까지만. 발행은 사람이 한다 (ADR-009) |
 | 부기 캐릭터 | **사용 보류 확정 (사용자 결정).** 산출물에 넣지 않는다. 라이선스 승인·고해상도 원본은 더 이상 대기 항목이 아니다 |
 | 이미지 생성 경로 | gpt-image-2 (Codex 빌트인) 도입 — 크레딧 0. ADR-011 개정 |
@@ -67,8 +68,9 @@
 
 > **세션을 시작하면 사용자에게 이 두 가지를 먼저 알려라.**
 >
-> 1. **SNS 3편 발행** — `output/social.json`. 자동 발행은 MVP 제외라 사람이 올린다 (ADR-009).
->    카드 6장은 인스타 캐러셀로 함께 쓸 수 있다.
+> 1. **다음 장소 편 작성.** 리서치 기준 우선순위: ① 감천문화마을(검색 수요 최상위 + 접근 불편 문서화)
+>    ② 자갈치시장 ③ 흰여울문화마을 ④ 해운대·스카이캡슐 ⑤ 태종대·송도.
+>    용궁사 편(`content/posts/2026-08-04-haedong-yonggungsa-*.md`)이 형식 원본이다.
 > 2. **Higgsfield 크레딧 충전** — 잔액 **8**, 무료 플랜.
 >    이미지는 gpt-image-2로 크레딧 없이 뽑으므로 더 이상 병목이 아니다.
 >    **릴스 영상 단계에서는 여전히 막힌다.** 릴스 착수 전에 충전이 필요하다.
