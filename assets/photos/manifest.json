@@ -15,6 +15,15 @@
       "rights": "ai:higgsfield/marketing_studio_image",
       "shot_at": null,
       "note": "카드 02 PROBLEM. 특정 버스·특정 회사가 아니므로 장소 약속과 무관하다."
+    },
+    {
+      "file": "concept/clock-no-hands.png",
+      "slot": "concept",
+      "subject": "Vintage round wall clock with no hands at all, black and white cutout",
+      "ai_generated": true,
+      "rights": "ai:gpt-image-2",
+      "shot_at": null,
+      "note": "카드 03 SOLUTION. 바늘이 없는 것은 스타일이 아니라 규정이다 — 바늘 있는 첫 생성물이 임의로 9시 10분을 그려서 QA B2(근거 없는 운영시간 주장)를 그림으로 재발시켰다. 배경 #DADADA를 코너 플러드필(fuzz 7%)로 제거해 알파를 만들었다."
     }
   ],
   "wanted": [

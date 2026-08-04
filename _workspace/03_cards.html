@@ -53,7 +53,19 @@
 
   <div class="label" style="color:var(--coral)">WHAT CHANGES</div>
   <div class="display d-l t-solid">YOUR CAR.<br><span class="t-accent">YOUR CLOCK.</span></div>
-  <p class="body">Start at nine. Or noon. Stay at Gamcheon while the light holds, and still make Gwangalli after dark.</p>
+  <!-- No clock times here. The landing page states no hours anywhere and the
+       brief ledger marks exact durations UNVERIFIED, so "start at nine / noon"
+       was an unbacked operating-hours claim (QA B2). The promise is the order
+       of the day, which facts[5] (private car + custom itinerary) does back. -->
+  <p class="body">You set the order. Stay at Gamcheon while the light holds, and still make Gwangalli after dark.</p>
+
+  <!-- The dial is deliberately handless. The first generation drew hands at ~9:10
+       on its own, which re-stated the operating-hours claim QA killed in B2 — an
+       image can assert a fact the ledger does not carry just as a sentence can.
+       Placed clear of the body text (right edge x792) and the pager (y>=986). -->
+  <div class="photo photo-cut photo-mono" style="right:60px;bottom:102px;width:230px;height:230px">
+    <img src="../assets/photos/concept/clock-no-hands.png" data-photo="concept/clock-no-hands.png" data-slot="concept" alt="A wall clock with no hands">
+  </div>
 
   <div class="pager">03 / 06</div>
 </section>
@@ -64,7 +76,10 @@
   <div class="blob dot" style="right:-70px;bottom:150px"></div>
 
   <div class="display d-l t-sand">THREE<br><span class="t-outline">ROUTES</span></div>
-  <div class="quote-box">
+  <!-- shadow-sand: the default coral shadow made this card carry two accents
+       (coral 1.86% + sand 6.03%). Sand is the dominant one here, so the box
+       follows it. -->
+  <div class="quote-box shadow-sand">
     <p class="body">Busan Highlights, a full day.<br>Markets &amp; Food, a half day.<br>Coast &amp; Culture, a half day.</p>
     <p class="attrib">Seoul routes and cruise-port days too.</p>
   </div>
@@ -89,15 +104,28 @@
 <section class="card bg-grad lay-cta">
   <div class="lockup"><span class="mark">SOJOURN KOREA</span><span class="handle">@sojournkorea</span></div>
 
-  <div class="display d-l t-solid">TELL US<br><span class="t-sand">YOUR DAY</span></div>
+  <!-- t-outline, not t-sand: the coral CTA band is already this card's accent,
+       and a sand second line made it two (QA M4). Outline keeps the two display
+       lines on different treatments without spending another colour. -->
+  <div class="display d-l t-solid">TELL US<br><span class="t-outline">YOUR DAY</span></div>
   <p class="sub" style="margin-top:28px;max-width:560px">We build the route around it.</p>
   <p class="label" style="margin-top:44px;opacity:0.7">BUSAN · SEOUL · CRUISE PORTS</p>
   <div class="blob ring" style="right:-90px;bottom:250px"></div>
 
   <div class="cta-band">
     <span class="go">Book a private day</span>
-    <span class="url">sojournkorea.net/private-tour</span>
+    <!-- www. is not optional: the apex 308-redirects, and this is the only card
+         that shows a URL people will retype by hand. -->
+    <span class="url">www.sojournkorea.net/private-tour</span>
   </div>
+
+  <!-- QA m5. Five of six cards carried an index, so the sixth reading as an
+       omission rather than a rule. 06 / 06 also signals the end of the carousel,
+       which helps the CTA rather than competing with it. Standard position, no
+       ink override: the band's bottom edge is y952 and the pager's top is y986,
+       and white at 0.55 clears contrast on the deep-blue gradient (unlike
+       .lay-split, where a white plane sits under the same spot). -->
+  <div class="pager">06 / 06</div>
 </section>
 
 </body>

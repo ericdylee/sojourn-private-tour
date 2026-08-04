@@ -76,6 +76,12 @@ body {
   z-index: 5;
 }
 
+/* .lay-split floods the bottom-right corner with a light .half-bottom, but the
+   pager inherits the CARD colour (white on bg-blue) and sits above it at
+   z-index 5 — white on white, index gone. Any layout that puts a light plane
+   under the pager must pin it to ink. */
+.card.lay-split .pager { color: var(--ink); }
+
 /* ---------- typography ---------- */
 
 .display {
@@ -205,6 +211,10 @@ body {
   max-width: 760px;
   box-shadow: 24px 24px 0 var(--coral);
 }
+/* One accent per card. When the display type on a quote card is already sand,
+   the default coral shadow makes it two — use this instead. Mirrors
+   .photo-frame.shadow-sand. */
+.lay-quote .quote-box.shadow-sand { box-shadow: 24px 24px 0 var(--sand); }
 .lay-quote .quote-box .body { font-size: 34px; }
 .lay-quote .attrib { margin-top: 32px; font: 600 24px/1.3 var(--text); opacity: 0.6; }
 
@@ -228,22 +238,46 @@ body {
 .lay-steps .step .t { display: block; font: 700 42px/1.15 var(--text); }
 .lay-steps .step .d { display: block; font: 400 26px/1.35 var(--text); opacity: 0.75; margin-top: 8px; }
 
-/* 06 CTA — bottom band */
+/* 06 CTA — coral plate.
+   Two constraints set this geometry, and both were learned the hard way:
+
+   1. Crop guard. Anchored at bottom:0 with height:200px and centred text, the
+      CTA line landed at y957–1003 — over half of it inside the bottom 100px
+      that Instagram's grid crop eats. The band now floats above the guard so
+      the conversion line and the URL survive the crop.
+   2. Accent area. A full-bleed 200px band is 1080x200 = 18.5% coral on its own,
+      past the 15% ceiling before a single other coral pixel. Insetting to the
+      safe area and shortening it puts the plate at 936x160 = 12.8%.
+
+   Do not re-anchor this to bottom:0. Either failure is invisible in the HTML
+   and only shows up in a pixel measurement of the finished PNG.
+
+   The two lines stack instead of sitting left/right. Measured: the CTA verb is
+   413px at 46px and the full www. URL is 537px at 28px — 950px of text that no
+   band narrow enough to satisfy the accent cap can hold on one row. Side by
+   side they shrink and the URL breaks mid-word at its hyphen, which is the one
+   thing on this card that must survive intact. Shrink-to-fit width (left set,
+   right auto) keeps the plate tight around the text instead of padding it out
+   with dead coral. */
 .lay-cta { display: flex; flex-direction: column; padding: var(--pad); padding-top: 190px; }
 .lay-cta .cta-band {
   position: absolute;
-  left: 0; right: 0; bottom: 0;
-  height: 200px;
+  left: var(--pad);
+  bottom: 128px;
+  max-width: calc(100% - var(--pad) * 2);
   background: var(--coral);
   color: var(--white);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 var(--pad) 0 var(--pad);
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 14px;
+  padding: 40px 48px;
   z-index: 4;
 }
 .lay-cta .cta-band .go { font: 900 46px/1 var(--text); letter-spacing: -0.01em; }
-.lay-cta .cta-band .url { font: 600 28px/1 var(--text); letter-spacing: 0.06em; opacity: 0.9; }
+/* nowrap is load-bearing, not cosmetic: a wrapped URL is a mistyped URL. */
+.lay-cta .cta-band .url { font: 600 28px/1 var(--text); letter-spacing: 0.06em; opacity: 0.9; white-space: nowrap; }
 
 /* ---------- photos ----------
    Every <img> inside .photo needs data-photo="<key in assets/photos/manifest.json>"
