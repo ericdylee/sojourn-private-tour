@@ -74,13 +74,26 @@ node .claude/skills/cardnews-render/scripts/render-cards.mjs _workspace/03_cards
 ```
 
 스크립트가 자동 검사하는 것:
+
+**기하·메타데이터**
 - 각 카드가 정확히 1080×1080인지
 - 세이프에어리어 밖으로 텍스트가 넘쳤는지 (`.bleed-*`, `.boogie`, `.blob`, `.cta-band`는 의도적 예외라 제외)
 - 본문이 상단 락업이나 하단 페이저와 겹쳤는지
 - **부기 라이선스**: 좌우 반전 여부 / 비율 왜곡 여부 / `.char-credit` 저작권 표기 누락 여부
+- 사진 출처가 `assets/photos/manifest.json`에 등재됐는지
 - 폰트/이미지 로딩 실패
 
+**외관** (QA T1로 추가 — 기하 검사는 이 둘을 구조적으로 못 잡는다)
+- **줄수** — 한 줄이 전제인 요소가 접혔는지. 대상은 `.cta-band .url`, `.cta-band .go`, `.pager`, `.lockup .mark`, `.lockup .handle` **allowlist**와 `white-space:nowrap|pre`가 걸린 요소, 그리고 `data-oneline`으로 직접 옵트인한 요소뿐이다. Display 카피는 원래 여러 줄이므로 **대상이 아니다.** 예외가 필요하면 `data-allow-wrap`.
+  `el.getClientRects()`로 세지 않는다 — `.url`·`.go`는 플렉스 아이템이라 블록화돼 몇 줄이든 rect가 1개다. 텍스트 노드에 Range를 걸어 line box를 센다.
+  nowrap이 줄바꿈을 넘침으로 바꾼 경우(`scrollWidth > clientWidth`)도 같이 잡는다.
+- **대비** — 글자와 그 뒤 배경의 실효 대비. 글자만 투명하게 만든 카드를 한 번 더 스크린샷해 **실제 렌더 픽셀에서** 배경을 읽는다. 조상 탐색이 아니라 픽셀이라 `.half-bottom` 같은 **형제 요소가 덮은 경우**(카드 02 M3)도 잡히고, 그라디언트·사진 배경도 그대로 다뤄진다. `opacity`와 `-webkit-text-stroke`를 반영한다.
+  임계는 **2.0:1 미만 실패 / 3.0:1 미만 경고**로 WCAG AA(4.5)보다 낮다. 근거는 ADR-014. 배경이 균일하지 않으면 글자 면적의 **25% 이상**이 임계 아래일 때만 판정한다.
+  정당한 저대비가 있으면 `data-contrast-exempt="사유"`로 빠지되, 사유가 NOTES에 그대로 출력된다.
+
 **exit code가 0이 아니면 PNG가 나왔더라도 완료가 아니다.** 보고된 문제를 고치고 재렌더하라. 오버플로우 경고를 무시하고 넘긴 카드는 인스타에서 글자가 잘린 채 발행된다.
+
+`NOTES (not failures):` 블록은 exit code를 바꾸지 않는다. **애매한 것만 여기로 간다** — 확실한 결함은 전부 `ISSUES:`로 가서 exit 1이 된다. 이유: 오탐이 잦으면 사람이 검사 전체를 무시하게 된다.
 
 ### Step 6 — 자가 확인
 
