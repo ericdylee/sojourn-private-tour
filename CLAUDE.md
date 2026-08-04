@@ -56,6 +56,8 @@ sojournkorea.net의 `/private-tour` 랜딩으로 트래픽과 예약 문의를 �
 | 2026-08-04 | 팩트 규칙 2분화 — **장소 사실은 출처 표기, 서비스 사실은 원장** | 전체 | 매거진 기사에는 장소의 역사·주소·개장시간이 필요한데 원장에는 없다. 성격이 다른 사실이다 |
 | 2026-08-04 | 블로그 본문 figure/figcaption 지원 추가 | 사이트 레포 templates/_head.html | CC 라이선스는 사진마다 출처 표기가 의무다 |
 
+| 2026-08-04 | 블로그 제목에 `\|` 브레이크 마커 도입 — h1만 적용, lg(1024px) 이상에서만. 테스트 8종 | 사이트 레포 scripts/publish.js | `text-balance`가 "Haedong Yonggungsa: The / Temple..."로 의미를 끊었다. md에서 강제하면 마지막 단어가 고아가 돼 lg로 올렸다 |
+
 ## CRITICAL 규칙
 
 - CRITICAL: 프로젝트 **루트에 package.json을 만들지 마라.** 이유: `.claude/settings.json`의 Stop 훅이 루트 package.json을 감지하면 존재하지 않는 `npm run lint/build/test`를 매 턴 실행해 실패한다. 렌더 의존성은 `.claude/skills/cardnews-render/scripts/`에 격리한다.

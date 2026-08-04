@@ -61,6 +61,24 @@
       "rights": "licensed:wikimedia/CC BY 2.0 — David Lee",
       "shot_at": null,
       "note": "본문 '언제 갈까' 절. 계절 한정 풍경이라 히어로로 쓰지 않고, 그 사실을 말하는 문단 옆에 뒀다 — 상시 모습으로 오해하면 그 자체가 허위 약속이다."
+    },
+    {
+      "file": "place/yonggungsa-main-hall.jpg",
+      "slot": "place",
+      "subject": "Main hall of Haedong Yonggungsa — painted eaves, hanja plaque, white stone balustrade",
+      "ai_generated": false,
+      "rights": "licensed:wikimedia/CC BY-SA 2.0 — 嘉銘 詹",
+      "shot_at": null,
+      "note": "본문 '역사' 절. 글이 말하는 '20세기 재건물'이 바로 이 건물이라 역사 문단 바로 아래 둔다."
+    },
+    {
+      "file": "place/yonggungsa-maitreya.jpg",
+      "slot": "place",
+      "subject": "Large gilded seated Maitreya in the open air, red 福 on the sack beside him",
+      "ai_generated": false,
+      "rights": "licensed:wikimedia/CC BY 2.0 — Gary Bembridge",
+      "shot_at": null,
+      "note": "본문 '볼 것' 절. 사진만 넣지 않고 본문 목록에도 항목으로 올려 설명 없는 이미지가 되지 않게 했다."
     }
   ],
   "wanted": [
