@@ -46,6 +46,9 @@ sojournkorea.net의 `/private-tour` 랜딩으로 트래픽과 예약 문의를 �
 | 2026-08-03 | 카드 03에 개념 이미지(바늘 없는 시계) 추가 | _workspace/03_cards.html, assets/photos | 카드 06장 중 이미지가 1장뿐이라 빈약했다 |
 | 2026-08-03 | **ADR-013 신설 — 이미지도 원장에 없는 사실을 주장 금지.** QA에 A12 항목 추가 | ADR, brand-qa-check | 생성된 시계가 지시하지 않은 9시 10분을 그려, 문장으로 지운 운영시간 주장(B2)이 그림으로 되살아났다. ADR-010(장소)만으로는 못 잡는다 |
 
+| 2026-08-04 | **블로그 첫 편 발행 — 라이브.** 사이트 레포 `~/PROJECTS/sojourn-relocation-v1`에 커밋·푸시 | 사이트 레포 | 사용자가 `/blog` 섹션 신설·배포 완료 |
+| 2026-08-04 | 블로그 생성기에 `faq:` 프론트매터 → FAQPage 구조화 데이터 지원 (테스트 7종) | 사이트 레포 `scripts/publish.js` | 생성기가 Article만 내보내 FAQ 리치결과를 못 받았다. 답변이 본문에 없으면 빌드가 실패한다 |
+
 ## CRITICAL 규칙
 
 - CRITICAL: 프로젝트 **루트에 package.json을 만들지 마라.** 이유: `.claude/settings.json`의 Stop 훅이 루트 package.json을 감지하면 존재하지 않는 `npm run lint/build/test`를 매 턴 실행해 실패한다. 렌더 의존성은 `.claude/skills/cardnews-render/scripts/`에 격리한다.

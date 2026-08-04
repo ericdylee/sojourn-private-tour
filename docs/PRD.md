@@ -42,7 +42,7 @@
 
 상세는 `docs/UI_GUIDE.md`, 실행 규칙은 `.claude/skills/sojourn-brand-system/SKILL.md`.
 
-## 현재 상태 (2026-08-03)
+## 현재 상태 (2026-08-04)
 
 새 세션은 이 절부터 읽어라. 진행 상황의 단일 출처다.
 
@@ -53,9 +53,11 @@
 | 사진 파이프라인 | 구축 완료 — 매니페스트 원장 + 트리트먼트 CSS + 출처 차단 (음성 테스트 4건 통과) |
 | 랜딩 URL | 확정 — `https://www.sojournkorea.net/private-tour` (200) |
 | 첫 카드 세트 | 6장 생산 완료 (`output/cards/`). 캠페인 `busan-highlights-full-day` |
-| 블로그 · SNS | 초안 생산 완료 — `output/blog.md`, `output/social.json` |
+| 블로그 · SNS | 생산 완료 — `output/blog.md`, `output/social.json` |
 | QA 1회차 | HOLD (BLOCKER 2 · MAJOR 5 · MINOR 4) — `output/qa_report.md` |
-| QA 2회차 | **BLOCKER 0 · MAJOR 0.** 반려 7건 전부 픽셀 실측으로 해소 확인. 판정은 HOLD 유지 — 사유는 블로그 게재 URL 부재 하나뿐이다 |
+| QA 2회차 | **BLOCKER 0 · MAJOR 0.** 반려 7건 전부 픽셀 실측으로 해소 확인 |
+| **블로그 발행** | **완료 — 라이브.** `https://www.sojournkorea.net/blog/busan-private-tour-four-corners-one-day` (200, Article + FAQPage 구조화 데이터, sitemap 등재) |
+| SNS 3편 | 파일까지만. 발행은 사람이 한다 (ADR-009) |
 | 부기 캐릭터 | **사용 보류 확정 (사용자 결정).** 산출물에 넣지 않는다. 라이선스 승인·고해상도 원본은 더 이상 대기 항목이 아니다 |
 | 이미지 생성 경로 | gpt-image-2 (Codex 빌트인) 도입 — 크레딧 0. ADR-011 개정 |
 | 릴스 | 미착수. Higgsfield 크레딧 충전 후 |
@@ -64,23 +66,26 @@
 
 > **세션을 시작하면 사용자에게 이 두 가지를 먼저 알려라.**
 >
-> 1. **블로그 게재 경로 결정 — 에이전트가 풀 수 없는 유일한 차단 항목.**
->    `output/blog.md`는 발행 가능한 상태인데 올릴 **`/blog` 경로가 사이트에 없다**
->    (`/blog` 404, sitemap 등재 URL은 `/`와 `/private-tour` 둘뿐).
->    사이트는 **Vercel 정적 사이트**라 페이지 1개 + sitemap 엔트리 추가 수준의 작업이다.
->    **사이트 소스 레포 경로를 받으면 에이전트가 붙일 수 있다.** 이 저장소에는 사이트 소스가 없다.
+> 1. **블로그 히어로 이미지 제작** — 현재 히어로가 없어 `og:image`가 기본 로고로 나간다.
+>    SNS 공유 카드가 밋밋하다. **`slot: "place"`는 여전히 금지다(ADR-010)** — 부산 실제 장소를
+>    AI로 그리면 안 된다. 개념 이미지로 간다.
 > 2. **Higgsfield 크레딧 충전** — 잔액 **8**, 무료 플랜.
 >    이미지는 gpt-image-2로 크레딧 없이 뽑으므로 더 이상 병목이 아니다.
 >    **릴스 영상 단계에서는 여전히 막힌다.** 릴스 착수 전에 충전이 필요하다.
 
+**사이트 소스 레포: `~/PROJECTS/sojourn-relocation-v1`** (remote는 `sojourn`, `origin`이 아니다 —
+`origin`은 무관한 harness_framework를 가리킨다). 발행은 `content/posts/YYYY-MM-DD-slug.md` 작성 후
+`npm run publish:blog`. `faq:` 프론트매터를 넣으면 FAQPage 구조화 데이터가 함께 나가고,
+**모든 답변이 본문에 그대로 있어야 빌드가 통과한다.**
+
 남은 MINOR: 카드 01·05 빈 사진 슬롯(실사진 대기), 블로그 내부 링크 1회
-(스킬은 1~2회를 더 요구하지만 사이트 전체 URL이 2개뿐이라 **충족 불가능** — 블로그 섹션이 생기면 같이 풀린다).
+(사이트 URL이 4개뿐이라 링크할 관련 서비스 페이지가 아직 없다).
 
 작업 후 이 절을 갱신하고 `CLAUDE.md` 변경 이력에 기록한다.
 
 ### 사용자 액션 대기 (에이전트가 못 하는 것)
 
-1. **블로그 게재 경로 결정 + 사이트 소스 레포 경로 제공** — 위 "다음 작업" 1번. 유일한 차단 항목이다
+1. **SNS 3편 발행** — `output/social.json`. 자동 발행은 MVP 제외라 사람이 올린다 (ADR-009)
 2. **Higgsfield 크레딧 충전** — 릴스 착수 전
 3. **부산 루트 실사진** — `docs/SHOTLIST.md` 우선순위 A 5컷.
    **A5(전용 차량 실내)가 최우선** — 상품 차별점을 보여주는 유일한 컷인데 지금 없다
