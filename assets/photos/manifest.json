@@ -24,6 +24,15 @@
       "rights": "ai:gpt-image-2",
       "shot_at": null,
       "note": "카드 03 SOLUTION. 바늘이 없는 것은 스타일이 아니라 규정이다 — 바늘 있는 첫 생성물이 임의로 9시 10분을 그려서 QA B2(근거 없는 운영시간 주장)를 그림으로 재발시켰다. 배경 #DADADA를 코너 플러드필(fuzz 7%)로 제거해 알파를 만들었다."
+    },
+    {
+      "file": "concept/route-day-gradient.png",
+      "slot": "concept",
+      "subject": "Abstract editorial illustration — one unbroken coral route line with four nodes over a dawn-to-night horizontal gradient, low generic hills at the bottom",
+      "ai_generated": true,
+      "rights": "ai:gpt-image-2",
+      "shot_at": null,
+      "note": "블로그 히어로 (busan-private-tour-four-corners-one-day). 글의 논지 '네 곳이 흩어져 있다 = 경로 문제'를 그대로 그린 도식이다. 지형은 의도적으로 추상화했다 — 실제 부산 해안선을 닮으면 '틀린 지도'가 되고 slot:place 금지(ADR-010)에 걸린다. 지명 라벨·글자 일절 없음. 배포본은 사이트 레포 images/blog/*.jpg (q92, 156KB), 여기 있는 PNG가 마스터다."
     }
   ],
   "wanted": [
