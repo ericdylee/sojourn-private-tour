@@ -58,6 +58,9 @@ sojournkorea.net의 `/private-tour` 랜딩으로 트래픽과 예약 문의를 �
 
 | 2026-08-04 | 블로그 제목에 `\|` 브레이크 마커 도입 — h1만 적용, lg(1024px) 이상에서만. 테스트 8종 | 사이트 레포 scripts/publish.js | `text-balance`가 "Haedong Yonggungsa: The / Temple..."로 의미를 끊었다. md에서 강제하면 마지막 단어가 고아가 돼 lg로 올렸다 |
 
+| 2026-08-04 | 블로그 2편 발행 (해동용궁사·감천문화마을) + 사진 9장 원장 등재 | 사이트 레포, assets/photos/place | 장소별 매거진 형식 확립. 감천 편이 최신 형식 원본 |
+| 2026-08-04 | **장소 사실은 출처 표기, 서비스 사실은 원장** 원칙을 실제 2편에 적용 | 블로그 | 창건연도가 학계에서 다투어지면 그 사실까지 쓴다. 제3자 가격(스탬프 지도)도 숫자는 안 쓴다 |
+
 ## CRITICAL 규칙
 
 - CRITICAL: 프로젝트 **루트에 package.json을 만들지 마라.** 이유: `.claude/settings.json`의 Stop 훅이 루트 package.json을 감지하면 존재하지 않는 `npm run lint/build/test`를 매 턴 실행해 실패한다. 렌더 의존성은 `.claude/skills/cardnews-render/scripts/`에 격리한다.

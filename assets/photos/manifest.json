@@ -79,14 +79,54 @@
       "rights": "licensed:wikimedia/CC BY 2.0 — Gary Bembridge",
       "shot_at": null,
       "note": "본문 '볼 것' 절. 사진만 넣지 않고 본문 목록에도 항목으로 올려 설명 없는 이미지가 되지 않게 했다."
+    },
+    {
+      "file": "place/gamcheon-hero-src.jpg",
+      "slot": "place",
+      "subject": "Whole village seen across the valley — painted houses stacked up the hillside under open sky",
+      "ai_generated": false,
+      "rights": "licensed:wikimedia/CC BY-SA 2.0 — bryan… (Flickr)",
+      "shot_at": null,
+      "note": "블로그 히어로 (gamcheon-culture-village). 하늘을 덜어내고 마을에 무게를 두도록 2.4:1로 크롭해서 배포본을 만들었다. 원본이 마스터."
+    },
+    {
+      "file": "place/gamcheon-44835393715.jpg",
+      "slot": "place",
+      "subject": "Pastel houses in stepped rows up the slope, wooded ridge behind",
+      "ai_generated": false,
+      "rights": "licensed:wikimedia/CC BY-SA 2.0 — bryan… (Flickr)",
+      "shot_at": null,
+      "note": "본문 도입. '앞집이 뒷집을 가리지 않는다'는 계단식 배치 규칙을 한 장으로 보여준다."
+    },
+    {
+      "file": "place/gamcheon-30809164987.jpg",
+      "slot": "place",
+      "subject": "Narrow painted alley with mural and steps climbing away",
+      "ai_generated": false,
+      "rights": "licensed:wikimedia/CC BY-SA 2.0 — bryan… (Flickr)",
+      "shot_at": null,
+      "note": "본문 '볼 것' 절. 전망대 사진이 아니라 내려가서 만나는 골목의 실제 폭."
+    },
+    {
+      "file": "place/gamcheon-30809161817.jpg",
+      "slot": "place",
+      "subject": "Ridge footpath with direction signs, roofs below and harbour beyond",
+      "ai_generated": false,
+      "rights": "licensed:wikimedia/CC BY-SA 2.0 — bryan… (Flickr)",
+      "shot_at": null,
+      "note": "본문 '가는 법' 절. 능선 길과 안내판 — 나머지는 전부 계단이라는 사실의 근거."
+    },
+    {
+      "file": "place/gamcheon-31877408798.jpg",
+      "slot": "place",
+      "subject": "Rooftops from inside the village — water tanks, wires, corrugated roofs",
+      "ai_generated": false,
+      "rights": "licensed:wikimedia/CC BY-SA 2.0 — bryan… (Flickr)",
+      "shot_at": null,
+      "note": "본문 '언제 갈까' 절. 관광 사진이 지우는 생활의 흔적을 남기려고 골랐다."
     }
   ],
   "wanted": [
-    {
-      "slot": "place",
-      "subject": "Gamcheon Culture Village — 골목 위에서 내려다본 계단식 지붕",
-      "for": "카드 01 HOOK, 05 스텝1, 블로그 히어로"
-    },
     {
       "slot": "place",
       "subject": "Jagalchi Market — 좌판 위 해산물 클로즈업",
