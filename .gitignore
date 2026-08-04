@@ -14,6 +14,9 @@ phases/**/step*-output.json
 #   .claude/skills/sojourn-brand-system/references/boogie-usage.md
 references/*.pdf
 
+# 브라우저 자동화 세션 아티팩트 (스냅샷·콘솔 로그). 산출물이 아니다.
+.playwright-mcp/
+
 # macOS
 .DS_Store
 

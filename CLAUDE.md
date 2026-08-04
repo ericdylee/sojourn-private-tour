@@ -34,11 +34,23 @@ sojournkorea.net의 `/private-tour` 랜딩으로 트래픽과 예약 문의를 �
 | 2026-08-03 | docs 4종(PRD·ARCHITECTURE·ADR·UI_GUIDE) 템플릿 → 실제 내용으로 작성 | docs/ | 기획 내용이 대화에만 있어 새 세션에서 유실됨 |
 | 2026-08-03 | 사진 파이프라인 추가 — 매니페스트 원장 + `.photo-*` 트리트먼트 + 렌더 출처 검증. ADR-010(장소 AI 금지)·011(OpenAI 미도입) | assets/photos, cardnews-render, brand-system, UI_GUIDE, ADR | 카드에 이미지가 0장이라 레퍼런스 대비 빈약. 장소 이미지 AI 생성은 약속 허위표시 위험 |
 | 2026-08-03 | 촬영 리스트 작성 (우선순위 A/B/C) | docs/SHOTLIST.md | 실사진이 유일한 차별 자산 |
+| 2026-08-03 | 렌더러에 **외관 검사 2종 추가** — 줄수(allowlist·Range 기반) + 대비(글자 제거 스크린샷 픽셀 측정). NOTES/ISSUES 분리. ADR-014 | cardnews-render/scripts, SKILL, ADR | QA T1. 기존 검사가 전부 기하·메타데이터라 줄바꿈과 대비를 구조적으로 못 잡았고, 두 건(카드 06 URL 단어중간 줄바꿈 · 카드 02 흰글자 on 흰배경)이 exit 0을 통과했다 |
+| 2026-08-03 | 카드 06에 페이저 `06 / 06` 추가 | _workspace/03_cards.html, output/cards | QA m5. 6장 중 5장만 인덱스가 있어 규칙이 아니라 누락으로 읽혔다 |
+| 2026-08-03 | **부기 캐릭터 사용 보류 확정** — 캐릭터 없이 간다 | 전체 | 사용자 결정. 라이선스 승인 절차·고해상도 원본 확보 부담 대비 실익이 낮음 |
+| 2026-08-03 | 블로그 1편 + SNS 3편 생산 | output/blog.md, output/social.json | 카드에 이어 나머지 채널 착수 |
+| 2026-08-03 | 카드 03 "Start at nine. Or noon." 제거 → "You set the order." | _workspace/01_brief.json, 03_cards.html, output/cards | QA B2. 랜딩에 시각 표기가 전무한데 브리프가 운영시간을 주장했다. 브리프 원장 오류였음 |
+| 2026-08-03 | 브리프 `banned_extra`에 "투어의 시작·종료 시각" 추가 | _workspace/01_brief.json | 원장을 안 고치면 다음 실행에서 같은 문구가 재생성된다 |
+| 2026-08-03 | 카드 액센트 1종·15% 상한 위반 교정, 카드 02 페이저 소실 복구, 카드 06 CTA 크롭가드 이탈 | cardnews-render/assets/brand.css, output/cards | QA MAJOR 4건. 수정이 공용 CSS에 들어가 이후 전 세트에 적용된다 |
+| 2026-08-03 | QA 수정분 실측 검증 — 6장 전부 단일 액센트·15% 이하(04: sand 7.89 단독, 06: coral 8.69 단독) | output/cards | 육안이 아니라 픽셀로 확인. **재검수는 아직 안 돌았다 — 공식 판정은 여전히 HOLD** |
+| 2026-08-03 | 개념 이미지 생성에 Codex 빌트인 `gpt-image-2` 도입. ADR-012가 ADR-011을 대체 | ADR, PRD, assets/photos | API 키·과금·코드 추가 없이 셸 호출로 되고, Higgsfield 잔액 8크레딧을 릴스용으로 아낀다 |
+| 2026-08-03 | 카드 03에 개념 이미지(바늘 없는 시계) 추가 | _workspace/03_cards.html, assets/photos | 카드 06장 중 이미지가 1장뿐이라 빈약했다 |
+| 2026-08-03 | **ADR-013 신설 — 이미지도 원장에 없는 사실을 주장 금지.** QA에 A12 항목 추가 | ADR, brand-qa-check | 생성된 시계가 지시하지 않은 9시 10분을 그려, 문장으로 지운 운영시간 주장(B2)이 그림으로 되살아났다. ADR-010(장소)만으로는 못 잡는다 |
 
 ## CRITICAL 규칙
 
 - CRITICAL: 프로젝트 **루트에 package.json을 만들지 마라.** 이유: `.claude/settings.json`의 Stop 훅이 루트 package.json을 감지하면 존재하지 않는 `npm run lint/build/test`를 매 턴 실행해 실패한다. 렌더 의존성은 `.claude/skills/cardnews-render/scripts/`에 격리한다.
-- CRITICAL: 브리프 `facts` 원장에 없는 가격·소요시간·운영시간을 산출물에 쓰지 마라. 투어는 실제 이행 약속이라 틀리면 환불·분쟁 사유다.
+- CRITICAL: 브리프 `facts` 원장에 없는 가격·소요시간·운영시간을 산출물에 쓰지 마라. 투어는 실제 이행 약속이라 틀리면 환불·분쟁 사유다. **이건 글자만의 규칙이 아니다** — 이미지 속에 읽히는 시계 시각·가격표·인원수·간판 문구도 똑같은 주장이다(ADR-013). 생성 모델은 지시하지 않은 구체값을 스스로 채워 넣으므로, 개념 이미지라도 채택 전에 눈으로 확인하라.
+- **부기 캐릭터는 현재 사용 보류다 (2026-08-03 사용자 결정).** 산출물에 넣지 마라. 아래 두 규칙은 보류가 해제될 경우에 대비해 남겨둔다.
 - CRITICAL: 부기 라이선스가 승인완료가 아니면 대외 발행하지 마라. 내부 시안까지만 허용.
 - CRITICAL: 부기를 **AI로 생성·변형하지 마라.** 좌우 반전·비율 왜곡·색 변경·새 포즈/표정/의상 생성 전부 금지다. 배경 제거와 업스케일만 허용. 등장 카드마다 저작권 표기 필수. 전체 규정은 `.claude/skills/sojourn-brand-system/references/boogie-usage.md`.
 - `_workspace/`를 지우지 마라. 사후 검증과 부분 재실행의 근거다.
