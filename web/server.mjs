@@ -1,7 +1,17 @@
 import http from 'node:http'
 import fs from 'node:fs'
 import path from 'node:path'
-import { REPO_ROOT, PUBLIC_DIR, OUTPUT_DIR, WORKSPACE_DIR, ASSETS_DIR, safeResolve, displayPath } from './lib/paths.mjs'
+import { randomBytes } from 'node:crypto'
+import {
+  REPO_ROOT,
+  PUBLIC_DIR,
+  OUTPUT_DIR,
+  WORKSPACE_DIR,
+  ASSETS_DIR,
+  safeResolve,
+  within,
+  displayPath,
+} from './lib/paths.mjs'
 import { Run } from './lib/runner.mjs'
 import { AGENTS } from './lib/prompts.mjs'
 import { readArtifacts } from './lib/artifacts.mjs'
@@ -10,6 +20,38 @@ import * as store from './lib/runs.mjs'
 
 const PORT = Number(process.env.PORT || 4173)
 const HOST = '127.0.0.1' // local only, by design — the agents write to this repo
+
+/**
+ * CSRF defence.
+ *
+ * Binding to loopback keeps the network out; it does not keep *browsers* out.
+ * Any page the operator visits can post to 127.0.0.1, and `POST /api/runs`
+ * starts an agent with full tool access under their own credentials — so a
+ * drive-by form submit would be remote code execution.
+ *
+ * A form POST cannot set a custom header (that would force a preflight this
+ * server never answers), so requiring one on every state-changing request is
+ * enough. The token is fetched from `/api/meta`, whose cross-origin response is
+ * unreadable without CORS headers, which this server never sends.
+ */
+const TOKEN = randomBytes(24).toString('hex')
+const ALLOWED_ORIGINS = new Set([`http://${HOST}:${PORT}`, `http://localhost:${PORT}`])
+
+function checkMutation(req, res) {
+  const method = req.method || 'GET'
+  if (method === 'GET' || method === 'HEAD') return true
+
+  const origin = req.headers.origin
+  if (origin && !ALLOWED_ORIGINS.has(origin)) {
+    fail(res, 403, '교차 출처 요청은 허용되지 않습니다.')
+    return false
+  }
+  if (req.headers['x-console-token'] !== TOKEN) {
+    fail(res, 403, '콘솔 토큰이 없거나 올바르지 않습니다. 브라우저에서 페이지를 새로고침하세요.')
+    return false
+  }
+  return true
+}
 
 /** Exactly one run at a time: two runs would trample the same ledger and output/. */
 let activeRun = null
@@ -88,10 +130,14 @@ function serveStatic(res, urlPath) {
 
 /** Serve a repo file for preview. Only the three directories the console shows. */
 function serveRepoFile(res, rel) {
+  // safeResolve returns a canonical path, so the allow-list has to be canonical
+  // too — otherwise a symlink anywhere above the repo breaks the comparison.
   const abs = safeResolve(REPO_ROOT, rel)
   if (!abs) return fail(res, 403, '경로가 레포 밖을 가리킵니다')
   const allowed = [OUTPUT_DIR, WORKSPACE_DIR, ASSETS_DIR]
-  if (!allowed.some((dir) => abs === dir || abs.startsWith(dir + path.sep))) {
+    .filter((dir) => fs.existsSync(dir))
+    .map((dir) => fs.realpathSync(dir))
+  if (!allowed.some((dir) => within(dir, abs))) {
     return fail(res, 403, 'output/, _workspace/, assets/ 안의 파일만 열 수 있습니다')
   }
   if (!fs.existsSync(abs) || !fs.statSync(abs).isFile()) return fail(res, 404, '파일이 없습니다')
@@ -127,9 +173,12 @@ const server = http.createServer(async (req, res) => {
     // ---- static ----
     if (!pathname.startsWith('/api/')) return serveStatic(res, pathname)
 
+    if (!checkMutation(req, res)) return
+
     // ---- meta ----
     if (pathname === '/api/meta' && method === 'GET') {
       return send(res, 200, {
+        token: TOKEN,
         repoRoot: REPO_ROOT,
         model: process.env.CAMPAIGN_MODEL || 'claude-opus-5',
         agents: AGENTS,
@@ -287,7 +336,10 @@ store.ensureRunsDir()
 
 server.listen(PORT, HOST, () => {
   process.stdout.write(
-    `\n  Sojourn 캠페인 콘솔\n  http://${HOST}:${PORT}\n  레포: ${displayPath(REPO_ROOT) || REPO_ROOT}\n\n`,
+    `\n  Sojourn 캠페인 콘솔\n  http://${HOST}:${PORT}\n  레포: ${displayPath(REPO_ROOT) || REPO_ROOT}\n` +
+      `  토큰: ${TOKEN}\n` +
+      `        브라우저는 자동으로 씁니다. curl 등으로 변경 요청을 보낼 때만\n` +
+      `        'x-console-token' 헤더에 넣으세요. 재시작하면 새로 발급됩니다.\n\n`,
   )
 })
 

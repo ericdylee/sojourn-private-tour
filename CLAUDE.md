@@ -71,6 +71,7 @@ sojournkorea.net의 `/private-tour` 랜딩으로 트래픽과 예약 문의를 �
 | 2026-08-05 | **`campaign-strategist` 제거 → 에이전트 6인에서 5인으로. 팩트 원장 소유권을 사람에게 이관** | agents 5종, campaign-brief, busan-campaign, web/ | 사용자 결정. ① 8/4 블로그 형식 전환("한 편 = 한 장소")으로 캠페인 레벨 앵글에서 파생된 첫 글이 폐기됐다 ② 팩트 규칙이 둘로 갈라져(장소=출처 표기 / 서비스=원장) 원장이 덮는 범위가 줄었다 ③ 콘솔에 검증 붙은 원장 편집기가 생겼다. 게다가 원장이 틀린 유일한 사례(QA B2 운영시간)가 전략가 자신의 오류였다 |
 | 2026-08-05 | 제작자 4인의 "`campaign-strategist`에게 물어라" 경로를 **사용자 질의**로 교체. `campaign-brief` 스킬을 **원장 계약서**로 성격 변경 (에이전트 작성 금지 명문화) | agents, campaign-brief | 전략가가 사라졌으니 팩트 질의가 갈 곳이 없었다. 기본값은 여전히 "답이 없으면 쓰지 마라" |
 | 2026-08-05 | 콘솔 브리프 화면에 **원장 생성** 기능 추가. 새 원장은 표준 UNVERIFIED 3건 + 금지 표현 5건을 갖고 시작 | web/lib/brief.mjs, web/public/views/brief.js | 전략가가 첫 원장을 만들던 자리를 사람이 이어받았다. 백지에서 시작하면 QA가 이미 막은 구멍이 다시 열린다 |
+| 2026-08-05 | **콘솔 보안 2건 수정** — ① 변경 요청에 CSRF 토큰 필수 ② 경로 가드를 realpath 기반으로 교체. 회귀 테스트 8종 추가 | web/server.mjs, web/lib/paths.mjs, web/public/app.js, web/test/ | 커밋 후 보안 검토에서 발견, 둘 다 재현 확인. ① 루프백 바인딩은 브라우저를 막지 못한다 — `<form enctype="text/plain">`은 프리플라이트 없이 나가고 `POST /api/runs`는 공격자 지시문으로 에이전트를 띄운다(드라이브바이 RCE) ② `path.resolve`는 `..`만 정규화하고 심볼릭 링크는 따라간다. `output/` 안의 링크로 `/etc/hosts`가 실제로 서빙됐다 |
 
 ## CRITICAL 규칙
 

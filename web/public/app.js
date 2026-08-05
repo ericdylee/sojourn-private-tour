@@ -50,11 +50,21 @@ function emit(type, payload) {
    API
    ========================================================================== */
 
+/**
+ * Fetched once from /api/meta and echoed back on every state-changing request.
+ * A cross-origin page cannot read it (no CORS headers) and cannot set a custom
+ * header without a preflight the server never answers, so this is what stops a
+ * drive-by form POST from starting an agent on the operator's machine.
+ */
+let token = null
+
 export async function api(path, opts = {}) {
-  const res = await fetch(path, {
-    headers: opts.body ? { 'content-type': 'application/json' } : {},
-    ...opts,
-  })
+  const method = (opts.method || 'GET').toUpperCase()
+  const headers = { ...(opts.headers || {}) }
+  if (opts.body) headers['content-type'] = 'application/json'
+  if (method !== 'GET' && method !== 'HEAD' && token) headers['x-console-token'] = token
+
+  const res = await fetch(path, { ...opts, headers })
   const text = await res.text()
   let data
   try {
@@ -277,6 +287,7 @@ async function boot() {
 
   try {
     state.meta = await api('/api/meta')
+    token = state.meta.token
     const model = $('#rail-model')
     if (model) model.textContent = state.meta.model
   } catch (err) {
