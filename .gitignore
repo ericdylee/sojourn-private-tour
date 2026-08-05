@@ -24,3 +24,7 @@ references/*.pdf
 .env
 .env.*
 !.env.example
+
+# 웹 콘솔 — 실행 이력과 원장 백업은 로컬 운영 데이터다. 산출물이 아니다.
+web/.runs/
+web/.brief-backups/

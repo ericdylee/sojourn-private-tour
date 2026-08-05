@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sojourn 캠페인 콘솔</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./style.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230A0E1A'/%3E%3Crect x='6' y='6' width='20' height='20' fill='%231C3FE8'/%3E%3Crect x='12' y='12' width='8' height='8' fill='%23FF4438'/%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="rail">
+        <a class="rail__mark" href="#/launch" aria-label="Sojourn 캠페인 콘솔">
+          <span class="rail__mark-glyph">SJ</span>
+        </a>
+
+        <nav class="rail__nav" id="rail-nav" aria-label="주 메뉴">
+          <a class="rail__link" href="#/launch" data-view="launch">
+            <span class="rail__ico" aria-hidden="true">▶</span>
+            <span class="rail__label">실행</span>
+          </a>
+          <a class="rail__link" href="#/live" data-view="live">
+            <span class="rail__ico" aria-hidden="true">≋</span>
+            <span class="rail__label">라이브</span>
+            <span class="rail__pip" id="rail-pip" hidden></span>
+          </a>
+          <a class="rail__link" href="#/artifacts" data-view="artifacts">
+            <span class="rail__ico" aria-hidden="true">▤</span>
+            <span class="rail__label">산출물</span>
+          </a>
+          <a class="rail__link" href="#/brief" data-view="brief">
+            <span class="rail__ico" aria-hidden="true">§</span>
+            <span class="rail__label">브리프</span>
+          </a>
+          <a class="rail__link" href="#/history" data-view="history">
+            <span class="rail__ico" aria-hidden="true">◷</span>
+            <span class="rail__label">이력</span>
+          </a>
+        </nav>
+
+        <div class="rail__foot">
+          <div class="lamp" id="lamp" data-state="idle" title="대기 중">
+            <span class="lamp__core"></span>
+          </div>
+          <div class="rail__meta" id="rail-model">—</div>
+        </div>
+      </aside>
+
+      <main class="stage" id="stage" tabindex="-1"></main>
+    </div>
+
+    <div class="grain" aria-hidden="true"></div>
+    <div class="toast-stack" id="toasts" role="status" aria-live="polite"></div>
+
+    <div class="lightbox" id="lightbox" hidden>
+      <button class="lightbox__close" id="lightbox-close" aria-label="닫기">✕</button>
+      <figure class="lightbox__frame">
+        <img id="lightbox-img" alt="" />
+        <figcaption id="lightbox-cap"></figcaption>
+      </figure>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

@@ -6,8 +6,7 @@
 
 ```
 .claude/
-├── agents/            에이전트 6인 — "누가 하는가"
-│   ├── campaign-strategist.md
+├── agents/            에이전트 5인 — "누가 하는가"
 │   ├── card-producer.md
 │   ├── blog-writer.md
 │   ├── social-writer.md
@@ -72,7 +71,7 @@ output/             최종 산출물
 ```
 사용자: 소재 지정
    ↓
-Phase 1  campaign-strategist ──→ _workspace/01_brief.json
+Phase 1  사람 (웹 콘솔 브리프 화면) ──→ _workspace/01_brief.json
    │                              (페르소나·앵글·카드 스켈레톤·SEO·팩트 원장·랜딩 상태)
    │     게이트: landing.status != 200 이거나 facts에 UNVERIFIED 존재 → 사용자에게 보고
    ↓
@@ -84,7 +83,7 @@ Phase 2  [에이전트 팀 — 병렬 + SendMessage 자체 조율]
    │   팀 내부 교환 (중복 방지):
    │     card-producer ──확정 Display 카피──→ blog-writer, social-writer
    │     blog-writer   ──핵심 문단 요지────→ social-writer
-   │     전원          ──facts 질의───────→ campaign-strategist
+   │     전원          ──facts 질의───────→ 사용자 (게이트 툴)
    ↓
 Phase 3  brand-qa (증분 검수) ──→ output/qa_report.md
    │     반려 시 담당 에이전트에게 직접 전달. 최대 2회 루프

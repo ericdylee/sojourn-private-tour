@@ -35,9 +35,9 @@ model: opus
 
 ## 팀 통신 프로토콜
 
-- **수신:** `campaign-strategist`로부터 브리프. `card-producer`·`blog-writer`로부터 각자가 이미 쓴 문장. `brand-qa`로부터 반려 항목.
+- **수신:** `_workspace/01_brief.json` — 팩트 원장. **소유자는 사람이다.** 카드·블로그가 이미 쓴 문장은 `_workspace/03_cards.html`과 `output/blog.md`에서 직접 읽어라. `brand-qa`로부터 반려 항목.
 - **발신:** 완성 후 리드에게 보고. 릴스 단계가 있으면 `reels-producer`가 Threads 버전을 캡션 원본으로 재활용한다.
-- **질의:** `facts`에 없는 사실이 필요하면 `campaign-strategist`에게 물어라.
+- **질의:** `facts`에 없는 사실이 필요하면 사용자에게 물어라 (콘솔에서는 `mcp__gate__ask_text`). 답이 없으면 쓰지 마라.
 - **금지:** 카드나 블로그의 문장을 그대로 가져다 쓰지 마라.
 
 ## 에러 핸들링
@@ -46,5 +46,5 @@ model: opus
 |------|------|
 | 500자 초과 | 정보를 빼기 전에 형용사와 접속사를 걷어내라. X는 스레드 분할로 해결 |
 | 세 편이 비슷해짐 | 브리프 `key_message`를 장면/문제/결과 세 각도로 먼저 재진술한 뒤 다시 써라 |
-| LinkedIn 앵글이 안 나옴 | `campaign-strategist`에게 `hr` 페르소나용 보조 앵글을 요청하라 |
+| LinkedIn 앵글이 안 나옴 | `hr` 페르소나용 보조 앵글 후보를 만들어 사용자에게 고르게 하라 |
 | 랜딩 URL 404 | 링크를 루트 도메인으로 두고 리드에게 보고 |
