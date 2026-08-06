@@ -25,7 +25,7 @@ export async function render(root, ctx) {
         'div',
         null,
         h('div', { class: 'head__kicker' }, 'Sojourn Korea · 부산 프라이빗 투어'),
-        h('h1', { class: 'head__title' }, '캠페인 콘솔'),
+        h('h1', { class: 'head__title' }, '콘텐츠 자동화'),
         h(
           'p',
           { class: 'head__sub' },

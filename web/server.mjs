@@ -336,7 +336,7 @@ store.ensureRunsDir()
 
 server.listen(PORT, HOST, () => {
   process.stdout.write(
-    `\n  Sojourn 캠페인 콘솔\n  http://${HOST}:${PORT}\n  레포: ${displayPath(REPO_ROOT) || REPO_ROOT}\n` +
+    `\n  Sojourn 콘텐츠 자동화\n  http://${HOST}:${PORT}\n  레포: ${displayPath(REPO_ROOT) || REPO_ROOT}\n` +
       `  토큰: ${TOKEN}\n` +
       `        브라우저는 자동으로 씁니다. curl 등으로 변경 요청을 보낼 때만\n` +
       `        'x-console-token' 헤더에 넣으세요. 재시작하면 새로 발급됩니다.\n\n`,
