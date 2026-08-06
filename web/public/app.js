@@ -268,12 +268,16 @@ async function route() {
     current = (await VIEWS[view].render(stage, ctx, arg)) || null
   } catch (err) {
     console.error(err)
-    stage.append(
-      Object.assign(document.createElement('div'), {
-        className: 'body',
-        innerHTML: `<div class="notice notice--bad">화면을 그리지 못했습니다: ${err.message}</div>`,
-      }),
-    )
+    // textContent, not innerHTML: err.message carries server text and file
+    // paths, and those trace back to agent-written names. An error string is a
+    // silly place to hand out script execution on this origin.
+    const box = document.createElement('div')
+    box.className = 'body'
+    const notice = document.createElement('div')
+    notice.className = 'notice notice--bad'
+    notice.textContent = `화면을 그리지 못했습니다: ${err.message}`
+    box.append(notice)
+    stage.append(box)
   }
 }
 

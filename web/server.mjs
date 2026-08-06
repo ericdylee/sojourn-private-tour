@@ -128,6 +128,29 @@ function serveStatic(res, urlPath) {
   fs.createReadStream(abs).pipe(res)
 }
 
+/**
+ * Headers for every repo-file response.
+ *
+ * These files are agent output, and `_workspace/03_cards.html` is literally
+ * written by the card producer. The artifacts view links them with
+ * `target="_blank"`, so without this a `<script>` in a card file would run as a
+ * top-level document **on the console's own origin** — where it can read the
+ * CSRF token from `GET /api/meta` (no token required to read) and then POST
+ * `/api/runs` with an instruction of its choosing. That is agent execution with
+ * every tool auto-approved, and it walks straight around the CSRF fix, which
+ * only ever defended the cross-origin case.
+ *
+ * `sandbox` with no allow-* tokens drops the response into an opaque origin and
+ * blocks script execution, so previews still render (styles, images, fonts) but
+ * cannot reach back into the console. `nosniff` stops a mislabelled file from
+ * being re-interpreted as HTML.
+ */
+const REPO_FILE_HEADERS = {
+  'cache-control': 'no-store',
+  'content-security-policy': 'sandbox',
+  'x-content-type-options': 'nosniff',
+}
+
 /** Serve a repo file for preview. Only the three directories the console shows. */
 function serveRepoFile(res, rel) {
   // safeResolve returns a canonical path, so the allow-list has to be canonical
@@ -142,7 +165,7 @@ function serveRepoFile(res, rel) {
   }
   if (!fs.existsSync(abs) || !fs.statSync(abs).isFile()) return fail(res, 404, '파일이 없습니다')
   const type = MIME[path.extname(abs).toLowerCase()] || 'application/octet-stream'
-  res.writeHead(200, { 'content-type': type, 'cache-control': 'no-store' })
+  res.writeHead(200, { ...REPO_FILE_HEADERS, 'content-type': type })
   fs.createReadStream(abs).pipe(res)
 }
 
