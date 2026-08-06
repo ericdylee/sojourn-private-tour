@@ -156,9 +156,28 @@ for (const [i, card] of cards.entries()) {
     // on the element's own class alone flags them as violations.
     // .char-credit is deliberately NOT exempt: the copyright notice must stay
     // inside the safe area to remain legible.
-    const BLEED = '.boogie, .blob, .cta-band, .half-top, .half-bottom, [class*="bleed-"]';
+    // .doodle joins the list for the same reason .blob is on it: a decorative
+    // mark that stops dead at the frame edge looks cropped, not drawn. Its SVG
+    // children inherit the exemption through closest().
+    const BLEED = '.boogie, .blob, .doodle, .wave, .cta-band, .half-top, .half-bottom, [class*="bleed-"]';
+
+    // An element cannot leak out of the frame through an ancestor that clips it.
+    // A background photo scaled up inside .photo's overflow:hidden reports a
+    // rect wider than the card, but not one pixel of it is painted there — that
+    // IS the crop. Stop at the card itself: .card is overflow:hidden too, so
+    // counting it would turn this whole check into a no-op. The clipping
+    // ancestor is in the same sweep and gets tested on its own account.
+    const clipped = (node) => {
+      for (let p = node.parentElement; p && p !== el; p = p.parentElement) {
+        const cs = getComputedStyle(p);
+        if (cs.overflow !== 'visible' || cs.overflowX !== 'visible' || cs.overflowY !== 'visible') return true;
+      }
+      return false;
+    };
+
     for (const child of el.querySelectorAll('*')) {
       if (child.closest(BLEED)) continue;
+      if (clipped(child)) continue;
       const cls = child.className?.toString?.() ?? '';
       const r = child.getBoundingClientRect();
       if (r.width === 0 || r.height === 0) continue;
@@ -175,9 +194,13 @@ for (const [i, card] of cards.entries()) {
   // stays inside the frame, so the overflow check above cannot see it.
   const collisions = await card.evaluate((el) => {
     const hits = [];
-    // .photo counts as an anchor: collage may overlap type, but never the fixed
-    // lockup/pager, and the lockup must never sit on a photo.
-    const anchors = [...el.querySelectorAll('.lockup, .pager, .cta-band, .photo')];
+    // A collage photo counts as an anchor: it is an object ON the card, and
+    // type running into it is a layout bug. A BACKGROUND photo is the opposite
+    // — the card is the photograph and the type is meant to be on it — so
+    // .photo-bg is excluded here. It stays in every other check: manifest
+    // registration, slot, the AI-in-a-place-slot ban, the credit requirement.
+    // Only this one geometric rule is inverted, and only for that class.
+    const anchors = [...el.querySelectorAll('.lockup, .pager, .cta-band, .photo:not(.photo-bg)')];
     const content = [...el.querySelectorAll('.display, .sub, .body, .label, .step, .quote-box, .char-credit')];
     const overlaps = (a, b) =>
       a.left < b.right - 2 && a.right > b.left + 2 && a.top < b.bottom - 2 && a.bottom > b.top + 2;
@@ -190,6 +213,21 @@ for (const [i, card] of cards.entries()) {
         if (cr.width === 0 || cr.height === 0) continue;
         if (overlaps(ar, cr)) {
           hits.push(`${c.className.toString().split(' ').slice(0, 2).join('.')} over .${anchor.className}`);
+        }
+      }
+    }
+
+    // Doodles are held to a narrower rule than type is. Drawing them over a
+    // photo or over a display word is the collage language working as intended,
+    // so they are not in `content` above. Drawing them over the lockup or the
+    // pager is not: that furniture is identical on all six cards, and a scribble
+    // through it is the one place a decorative mark can damage the set.
+    for (const d of el.querySelectorAll('.doodle')) {
+      const dr = d.getBoundingClientRect();
+      if (dr.width === 0 || dr.height === 0) continue;
+      for (const fixed of el.querySelectorAll('.lockup, .pager')) {
+        if (overlaps(dr, fixed.getBoundingClientRect())) {
+          hits.push(`.doodle over .${fixed.className}`);
         }
       }
     }

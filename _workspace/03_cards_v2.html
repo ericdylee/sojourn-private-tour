@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sojourn — Busan Highlights card set v2 (reference2 register)</title>
+<link rel="stylesheet" href="../.claude/skills/cardnews-render/assets/brand.css">
+<!-- campaign: busan-highlights-full-day · set v2
+     Test set against references/reference2.jpeg. The copy is held CONSTANT from
+     v1 (_workspace/03_cards_prev.html) on purpose: every line in it survived the
+     QA fact pass, so changing wording and visual language in the same step would
+     make the two sets incomparable. What changes here is the visual register:
+
+       1. Doodles. Loose line marks on all six. v1 had none, and that is most of
+          why its type-only cards read as slides rather than as designs.
+       2. Imagery on four cards instead of two. Cards 04 and 06 pick up real
+          place photographs — both of Haedong Yonggungsa, which the ledger puts
+          on this exact route (facts[1]).
+       3. A bigger first word on the cover (d-xxl).
+
+     Boogie stays out: character use is on hold by the 2026-08-03 decision.
+-->
+</head>
+<body>
+
+<!-- ============ 01 · HOOK ============
+     Descending scale, three treatments. d-xxl is spent on the shortest line —
+     "DONE RIGHT" is ten characters and would wrap at 250px, and a wrapped
+     display word is just a big word.
+
+     "IN BUSAN" stays at d-xl as a rhythm choice — one word bigger than the two
+     under it — and NOT because of the accent cap. That was the first reasoning
+     here and measurement killed it: the plate's footprint at d-xl is 708x181 =
+     11.0% of the canvas, but the white glyphs cover most of it, so the coral
+     that actually survives is 3.37%. A .t-box is never as expensive as its
+     bounding box. Judge accent area on rendered pixels, not on geometry.
+
+     Measured across the set (single accent each, ceiling 15%):
+       01 coral 3.37 · 02 coral 2.21 · 03 coral 5.87
+       04 sand  5.82 · 05 sand  3.02 · 06 coral 9.24
+-->
+<section class="card bg-blue lay-bleed">
+  <div class="lockup"><span class="mark">SOJOURN KOREA</span><span class="handle">@sojournkorea</span></div>
+
+  <div class="doodle" style="right:-30px;top:150px;width:150px;height:150px">
+    <svg viewBox="0 0 100 100"><path d="M50 2 C54 34 66 46 98 50 C66 54 54 66 50 98 C46 66 34 54 2 50 C34 46 46 34 50 2 Z"/></svg>
+  </div>
+
+  <div class="headline">
+    <div class="display d-xxl t-solid">ONE DAY</div>
+    <div class="display d-xl t-box bleed-r">IN BUSAN</div>
+    <div class="display d-xl t-outline">DONE RIGHT</div>
+  </div>
+  <p class="sub" style="margin-top:36px;max-width:620px">A private car. A driver who knows the roads.</p>
+
+  <div class="doodle thin" style="left:72px;top:912px;width:400px;height:46px">
+    <svg viewBox="0 0 400 46"><path d="M6 16 C110 2 300 4 394 14"/><path d="M18 34 C120 22 286 24 372 40"/></svg>
+  </div>
+  <div class="doodle" style="left:700px;top:790px;width:150px;height:140px">
+    <svg viewBox="0 0 150 140"><path d="M10 8 C70 30 116 70 108 118"/><path d="M84 96 L110 124 L132 100"/></svg>
+  </div>
+
+  <div class="pager">01 / 06</div>
+</section>
+
+<!-- ============ 02 · PROBLEM ============
+     The white wedge cuts the card; the second doodle lands on it, so it takes
+     .ink. Inheriting the card's white there would erase it entirely — the same
+     failure mode the pager hit in QA M3.
+-->
+<section class="card bg-blue lay-split">
+  <div class="lockup"><span class="mark">SOJOURN KOREA</span><span class="handle">@sojournkorea</span></div>
+
+  <div class="blob slash" style="right:-60px;top:330px"></div>
+  <div class="doodle dashed" style="left:700px;top:150px;width:200px;height:178px">
+    <svg viewBox="0 0 180 160"><path d="M8 152 C20 60 90 8 176 12"/></svg>
+  </div>
+
+  <div class="half-top">
+    <div class="display d-l t-outline">HALF A DAY</div>
+  </div>
+  <div class="photo photo-frame" style="right:60px;top:372px;width:400px;height:400px;transform:rotate(3deg)">
+    <img src="../assets/photos/concept/crowded-bus.png" data-photo="concept/crowded-bus.png" data-slot="concept" alt="Interior of a crowded tour bus">
+  </div>
+  <div class="half-bottom">
+    <div class="display d-m t-solid">ON THE ROAD</div>
+    <p class="body" style="margin-top:24px;max-width:660px">Group tours run on a timetable. Yours doesn't have to.</p>
+  </div>
+
+  <div class="doodle ink" style="left:780px;top:790px;width:150px;height:140px">
+    <svg viewBox="0 0 150 140"><path d="M10 8 C70 30 116 70 108 118"/><path d="M84 96 L110 124 L132 100"/></svg>
+  </div>
+
+  <div class="pager">02 / 06</div>
+</section>
+
+<!-- ============ 03 · SOLUTION ============
+     The scribble ring circles the clock instead of framing it. A .photo-frame
+     here would spend coral that "YOUR CLOCK." already holds, and one accent per
+     card is the rule; a doodle costs nothing.
+-->
+<section class="card bg-white lay-stack no-char">
+  <div class="lockup"><span class="mark">SOJOURN KOREA</span><span class="handle">@sojournkorea</span></div>
+  <div class="blob slash" style="right:-80px;top:230px"></div>
+
+  <div class="label" style="color:var(--coral)">WHAT CHANGES</div>
+  <div class="display d-l t-solid">YOUR CAR.<br><span class="t-accent">YOUR CLOCK.</span></div>
+  <!-- No clock times here. The landing page states no hours anywhere and the
+       brief ledger marks exact durations UNVERIFIED, so "start at nine / noon"
+       was an unbacked operating-hours claim (QA B2). The promise is the order
+       of the day, which facts[5] (private car + custom itinerary) does back. -->
+  <p class="body" style="max-width:640px">You set the order. Stay at Gamcheon while the light holds, and still make Gwangalli after dark.</p>
+
+  <!-- The dial is deliberately handless. The first generation drew hands at ~9:10
+       on its own, which re-stated the operating-hours claim QA killed in B2 — an
+       image can assert a fact the ledger does not carry just as a sentence can.
+       Lifted 68px off v1's position to clear the ring below the pager. -->
+  <div class="photo photo-cut photo-mono" style="right:60px;bottom:170px;width:230px;height:230px">
+    <img src="../assets/photos/concept/clock-no-hands.png" data-photo="concept/clock-no-hands.png" data-slot="concept" alt="A wall clock with no hands">
+  </div>
+  <!-- One loop with a short overshoot past the start, which is what a ring drawn
+       by hand actually looks like. The first attempt spiralled inward and read as
+       a broken arc beside the clock rather than a circle around it. -->
+  <div class="doodle thin" style="left:750px;top:640px;width:310px;height:310px">
+    <svg viewBox="0 0 310 310"><path d="M155 18 C245 18 300 90 296 160 C292 235 230 292 152 292 C74 292 16 236 14 158 C12 82 68 24 150 18 C232 12 292 62 300 130"/></svg>
+  </div>
+  <!-- Sits above the cap line of "YOUR CAR.", not on it. -->
+  <div class="doodle" style="left:420px;top:250px;width:80px;height:80px">
+    <svg viewBox="0 0 100 100"><path d="M50 2 C54 34 66 46 98 50 C66 54 54 66 50 98 C46 66 34 54 2 50 C34 46 46 34 50 2 Z"/></svg>
+  </div>
+
+  <div class="pager">03 / 06</div>
+</section>
+
+<!-- ============ 04 · PROOF ============
+     Gains a real photograph. Yonggungsa is on this route by facts[1], so the
+     image is a claim the ledger already carries. This file is the public-domain
+     one of the eleven on the manifest — the CC BY-SA alternatives would put a
+     share-alike obligation on a commercial card, which is a different question
+     from whether the picture is honest.
+
+     shadow-sand, not the default coral: the display line is already sand, and
+     the coral shadow would make this card carry two accents (the v1 fix, QA M4).
+-->
+<section class="card bg-ink lay-quote with-head">
+  <div class="lockup"><span class="mark">SOJOURN KOREA</span><span class="handle">@sojournkorea</span></div>
+
+  <div class="photo photo-mono photo-frame shadow-sand" style="right:72px;top:128px;width:380px;height:360px">
+    <img src="../assets/photos/place/yonggungsa-descent.jpg" data-photo="place/yonggungsa-descent.jpg" data-slot="place" alt="Stone-lantern path descending to Haedong Yonggungsa">
+  </div>
+  <!-- Both marks stay right of x880, clear of the quote box and its sand shadow
+       (which ends at x856). The first placement ran the dashed path straight
+       across the white box: white-on-white erased most of it and what survived
+       landed on top of the route lines as specks. A doodle is exempt from the
+       contrast check, so nothing but looking at the PNG catches that. -->
+  <div class="doodle dashed" style="left:880px;top:560px;width:200px;height:140px">
+    <svg viewBox="0 0 200 140"><path d="M4 132 C40 60 118 20 196 12"/></svg>
+  </div>
+  <div class="doodle" style="left:906px;top:766px;width:90px;height:90px">
+    <svg viewBox="0 0 100 100"><path d="M50 2 C54 34 66 46 98 50 C66 54 54 66 50 98 C46 66 34 54 2 50 C34 46 46 34 50 2 Z"/></svg>
+  </div>
+
+  <div class="display d-l t-sand">THREE<br><span class="t-outline">ROUTES</span></div>
+  <div class="quote-box shadow-sand">
+    <p class="body">Busan Highlights, a full day.<br>Markets &amp; Food, a half day.<br>Coast &amp; Culture, a half day.</p>
+    <p class="attrib">Seoul routes and cruise-port days too.</p>
+  </div>
+
+  <p class="photo-credit">Photo: Paul Evans / Wikimedia Commons · public domain</p>
+  <div class="pager">04 / 06</div>
+</section>
+
+<!-- ============ 05 · ITINERARY ============
+     Four rows is the ceiling at these metrics, so the marks go in the only
+     clear band on the card — right of the heading, above the first rule.
+-->
+<section class="card bg-blue lay-steps">
+  <div class="lockup"><span class="mark">SOJOURN KOREA</span><span class="handle">@sojournkorea</span></div>
+
+  <!-- Lifted clear of the first rule. The rules are the structure of this card;
+       a mark sitting on one reads as a printing fault, not as a drawing. -->
+  <div class="doodle dashed" style="left:790px;top:140px;width:200px;height:120px">
+    <svg viewBox="0 0 180 108"><path d="M8 100 C20 30 90 6 176 10"/></svg>
+  </div>
+  <div class="doodle" style="left:690px;top:158px;width:78px;height:78px">
+    <svg viewBox="0 0 100 100"><path d="M50 2 C54 34 66 46 98 50 C66 54 54 66 50 98 C46 66 34 54 2 50 C34 46 46 34 50 2 Z"/></svg>
+  </div>
+
+  <div class="display d-m t-sand" style="margin-bottom:24px">ONE FULL DAY</div>
+  <div class="step"><span class="n">1</span><span class="txt"><span class="t">Gamcheon Culture Village</span><span class="d">Hillside lanes stacked over the water</span></span></div>
+  <div class="step"><span class="n">2</span><span class="txt"><span class="t">Jagalchi &amp; Gukje Markets</span><span class="d">Lunch picked off the counter</span></span></div>
+  <div class="step"><span class="n">3</span><span class="txt"><span class="t">Haedong Yonggungsa</span><span class="d">A temple built onto the rocks</span></span></div>
+  <div class="step"><span class="n">4</span><span class="txt"><span class="t">Sky Capsule &amp; Gwangalli</span><span class="d">Coast ride, then the bridge lights</span></span></div>
+
+  <div class="pager">05 / 06</div>
+</section>
+
+<!-- ============ 06 · CTA ============
+     The paper plane is the one doodle that carries meaning rather than energy:
+     it is the send, aimed at the band. Photo is CC BY 2.0 — attribution only,
+     no share-alike, so it can sit on a commercial card with the credit line.
+-->
+<section class="card bg-grad lay-cta">
+  <div class="lockup"><span class="mark">SOJOURN KOREA</span><span class="handle">@sojournkorea</span></div>
+
+  <!-- t-outline, not t-sand: the coral CTA band is already this card's accent,
+       and a sand second line made it two (QA M4). Outline keeps the two display
+       lines on different treatments without spending another colour. -->
+  <div class="display d-l t-solid">TELL US<br><span class="t-outline">YOUR DAY</span></div>
+  <p class="sub" style="margin-top:28px;max-width:560px">We build the route around it.</p>
+  <p class="label" style="margin-top:44px;opacity:0.7">BUSAN · SEOUL · CRUISE PORTS</p>
+
+  <div class="photo photo-mono photo-frame" style="right:72px;top:230px;width:340px;height:300px">
+    <img src="../assets/photos/place/yonggungsa-bridge.jpg" data-photo="place/yonggungsa-bridge.jpg" data-slot="place" alt="The stone bridge into Haedong Yonggungsa">
+  </div>
+
+  <div class="doodle" style="left:640px;top:648px;width:130px;height:110px">
+    <svg viewBox="0 0 130 110"><path d="M6 48 L124 6 L78 104 L58 66 Z"/><path d="M6 48 L58 66 L124 6"/></svg>
+  </div>
+  <div class="doodle dashed" style="left:420px;top:630px;width:210px;height:140px">
+    <svg viewBox="0 0 210 140"><path d="M4 132 C40 60 120 22 204 14"/></svg>
+  </div>
+
+  <div class="cta-band">
+    <span class="go">Book a private day</span>
+    <!-- www. is not optional: the apex 308-redirects, and this is the only card
+         that shows a URL people will retype by hand. -->
+    <span class="url">www.sojournkorea.net/private-tour</span>
+  </div>
+
+  <p class="photo-credit">Photo: Seokjoon Choi / Wikimedia Commons · CC BY 2.0</p>
+  <!-- QA m5. Five of six cards carried an index, so the sixth read as an
+       omission rather than a rule. 06 / 06 also signals the end of the carousel. -->
+  <div class="pager">06 / 06</div>
+</section>
+
+</body>
+</html>

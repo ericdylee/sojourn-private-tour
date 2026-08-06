@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sojourn — Busan Highlights card set (no character)</title>
+<link rel="stylesheet" href="../.claude/skills/cardnews-render/assets/brand.css">
+<!-- campaign: busan-highlights-full-day
+     Boogie is intentionally absent: the Busan city licence is not approved in
+     writing yet, so this set validates copy and layout only. When approval
+     lands, add the character to 01 / 03 / 06 and the required .char-credit,
+     and drop the .no-char modifier on card 03. -->
+</head>
+<body>
+
+<!-- ============ 01 · HOOK ============ -->
+<section class="card bg-blue lay-bleed">
+  <div class="lockup"><span class="mark">SOJOURN KOREA</span><span class="handle">@sojournkorea</span></div>
+  <div class="blob ring" style="right:-60px;bottom:120px"></div>
+
+  <div class="headline">
+    <div class="display d-xl t-solid">ONE DAY</div>
+    <div class="display d-xl t-box bleed-r">IN BUSAN</div>
+    <div class="display d-xl t-outline">DONE RIGHT</div>
+  </div>
+  <p class="sub" style="margin-top:36px;max-width:620px">A private car. A driver who knows the roads.</p>
+
+  <div class="pager">01 / 06</div>
+</section>
+
+<!-- ============ 02 · PROBLEM ============ -->
+<section class="card bg-blue lay-split">
+  <div class="lockup"><span class="mark">SOJOURN KOREA</span><span class="handle">@sojournkorea</span></div>
+
+  <div class="blob slash" style="right:-60px;top:330px"></div>
+  <div class="half-top">
+    <div class="display d-l t-outline">HALF A DAY</div>
+  </div>
+  <div class="photo photo-frame" style="right:60px;top:372px;width:400px;height:400px;transform:rotate(3deg)">
+    <img src="../assets/photos/concept/crowded-bus.png" data-photo="concept/crowded-bus.png" data-slot="concept" alt="Interior of a crowded tour bus">
+  </div>
+  <div class="half-bottom">
+    <div class="display d-m t-solid">ON THE ROAD</div>
+    <p class="body" style="margin-top:24px;max-width:660px">Group tours run on a timetable. Yours doesn't have to.</p>
+  </div>
+
+  <div class="pager">02 / 06</div>
+</section>
+
+<!-- ============ 03 · SOLUTION ============ -->
+<section class="card bg-white lay-stack no-char">
+  <div class="lockup"><span class="mark">SOJOURN KOREA</span><span class="handle">@sojournkorea</span></div>
+  <div class="blob slash" style="right:-80px;top:230px"></div>
+
+  <div class="label" style="color:var(--coral)">WHAT CHANGES</div>
+  <div class="display d-l t-solid">YOUR CAR.<br><span class="t-accent">YOUR CLOCK.</span></div>
+  <!-- No clock times here. The landing page states no hours anywhere and the
+       brief ledger marks exact durations UNVERIFIED, so "start at nine / noon"
+       was an unbacked operating-hours claim (QA B2). The promise is the order
+       of the day, which facts[5] (private car + custom itinerary) does back. -->
+  <p class="body">You set the order. Stay at Gamcheon while the light holds, and still make Gwangalli after dark.</p>
+
+  <!-- The dial is deliberately handless. The first generation drew hands at ~9:10
+       on its own, which re-stated the operating-hours claim QA killed in B2 — an
+       image can assert a fact the ledger does not carry just as a sentence can.
+       Placed clear of the body text (right edge x792) and the pager (y>=986). -->
+  <div class="photo photo-cut photo-mono" style="right:60px;bottom:102px;width:230px;height:230px">
+    <img src="../assets/photos/concept/clock-no-hands.png" data-photo="concept/clock-no-hands.png" data-slot="concept" alt="A wall clock with no hands">
+  </div>
+
+  <div class="pager">03 / 06</div>
+</section>
+
+<!-- ============ 04 · PROOF ============ -->
+<section class="card bg-ink lay-quote with-head">
+  <div class="lockup"><span class="mark">SOJOURN KOREA</span><span class="handle">@sojournkorea</span></div>
+  <div class="blob dot" style="right:-70px;bottom:150px"></div>
+
+  <div class="display d-l t-sand">THREE<br><span class="t-outline">ROUTES</span></div>
+  <!-- shadow-sand: the default coral shadow made this card carry two accents
+       (coral 1.86% + sand 6.03%). Sand is the dominant one here, so the box
+       follows it. -->
+  <div class="quote-box shadow-sand">
+    <p class="body">Busan Highlights, a full day.<br>Markets &amp; Food, a half day.<br>Coast &amp; Culture, a half day.</p>
+    <p class="attrib">Seoul routes and cruise-port days too.</p>
+  </div>
+
+  <div class="pager">04 / 06</div>
+</section>
+
+<!-- ============ 05 · ITINERARY ============ -->
+<section class="card bg-blue lay-steps">
+  <div class="lockup"><span class="mark">SOJOURN KOREA</span><span class="handle">@sojournkorea</span></div>
+
+  <div class="display d-m t-sand" style="margin-bottom:24px">ONE FULL DAY</div>
+  <div class="step"><span class="n">1</span><span class="txt"><span class="t">Gamcheon Culture Village</span><span class="d">Hillside lanes stacked over the water</span></span></div>
+  <div class="step"><span class="n">2</span><span class="txt"><span class="t">Jagalchi &amp; Gukje Markets</span><span class="d">Lunch picked off the counter</span></span></div>
+  <div class="step"><span class="n">3</span><span class="txt"><span class="t">Haedong Yonggungsa</span><span class="d">A temple built onto the rocks</span></span></div>
+  <div class="step"><span class="n">4</span><span class="txt"><span class="t">Sky Capsule &amp; Gwangalli</span><span class="d">Coast ride, then the bridge lights</span></span></div>
+
+  <div class="pager">05 / 06</div>
+</section>
+
+<!-- ============ 06 · CTA ============ -->
+<section class="card bg-grad lay-cta">
+  <div class="lockup"><span class="mark">SOJOURN KOREA</span><span class="handle">@sojournkorea</span></div>
+
+  <!-- t-outline, not t-sand: the coral CTA band is already this card's accent,
+       and a sand second line made it two (QA M4). Outline keeps the two display
+       lines on different treatments without spending another colour. -->
+  <div class="display d-l t-solid">TELL US<br><span class="t-outline">YOUR DAY</span></div>
+  <p class="sub" style="margin-top:28px;max-width:560px">We build the route around it.</p>
+  <p class="label" style="margin-top:44px;opacity:0.7">BUSAN · SEOUL · CRUISE PORTS</p>
+  <div class="blob ring" style="right:-90px;bottom:250px"></div>
+
+  <div class="cta-band">
+    <span class="go">Book a private day</span>
+    <!-- www. is not optional: the apex 308-redirects, and this is the only card
+         that shows a URL people will retype by hand. -->
+    <span class="url">www.sojournkorea.net/private-tour</span>
+  </div>
+
+  <!-- QA m5. Five of six cards carried an index, so the sixth reading as an
+       omission rather than a rule. 06 / 06 also signals the end of the carousel,
+       which helps the CTA rather than competing with it. Standard position, no
+       ink override: the band's bottom edge is y952 and the pager's top is y986,
+       and white at 0.55 clears contrast on the deep-blue gradient (unlike
+       .lay-split, where a white plane sits under the same spot). -->
+  <div class="pager">06 / 06</div>
+</section>
+
+</body>
+</html>
