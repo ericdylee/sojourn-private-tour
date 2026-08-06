@@ -106,20 +106,20 @@
       "badge": "Before you go · 05",
       "copy": {
         "headline": [
-          "It is stairs,",
-          "end to end"
+          "Even the easy way",
+          "is uphill"
         ],
-        "accent": "stairs",
+        "accent": "uphill",
         "support": "There is no flat version of Gamcheon. Come ready to climb."
       },
-      "fact_source": "블로그 — 능선 길 외에는 전부 계단",
-      "image_intent": "실제로 걸어야 하는 계단",
+      "fact_source": "블로그 — \"Come prepared to climb… there is no version of it that is flat\" 본문 + 이 사진 캡션 \"Signed paths run along the ridge\"",
+      "image_intent": "정비된 능선 보행로인데도 여전히 기울어 있는 지면",
       "photo": {
         "key": "place/gamcheon-30809161817.jpg",
         "slot": "place",
         "rights": "licensed:wikimedia/CC BY-SA 2.0 — bryan...",
         "credit_required": true,
-        "mismatch": "image_intent와 어긋난다 — 이 사진은 계단이 아니라 비탈길이다. 원장에 감천 계단 사진이 없어 차선을 썼다. manifest.wanted에 촬영 요청 등재됨"
+        "mismatch": "해소됨 (2026-08-06) — 사진을 문구에 맞추는 대신 문구를 사진에 맞췄다. 구 헤드라인 \"It is stairs, end to end\"는 블로그에 발행된 참인 문장이지만 이 컷에는 계단이 한 칸도 없어 사진이 문장을 반증했다. manifest.wanted의 감천 계단 촬영 요청은 유효하다 — 계단을 정면으로 다루는 카드를 만들려면 여전히 그 사진이 필요하다"
       }
     },
     {
