@@ -2,7 +2,7 @@
    1080 x 1080 card system. Tokens are owned by sojourn-brand-system/SKILL.md.
    Do not redefine colors or type sizes inline; use the classes below. */
 
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;700;800;900&family=Montserrat:wght@600;700;800&display=swap');
 
 :root {
   --blue: #1C3FE8;
@@ -13,11 +13,30 @@
   --sand: #F5C24B;
   --paper: #F1F0EC;
 
+  /* Accent for the SIMPLE direction. It REPLACES coral inside .lay-simple
+     rather than joining it — a card still carries exactly one accent.
+
+     Two measurements decided the hue rather than taste. Against the black scrim
+     these cards use, coral lands at 3.07:1 and this orange at 4.03:1, and the
+     accent here is set in TEXT, where coral's extra darkness costs legibility it
+     does not cost on a solid plate. And the photographs are Busan hillside
+     roofs, which are overwhelmingly blue — orange is their complement, so the
+     accent separates from the picture instead of sitting in it. */
+  --orange: #FF7A29;
+
   --pad: 72px;         /* safe area */
   --bottom-guard: 100px; /* no meaningful text below this from the bottom */
 
   --display: 'Anton', 'Arial Black', Impact, sans-serif;
   --text: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+
+  /* Voice face for the SIMPLE direction — headline and supporting line only.
+     Montserrat over Poppins for one reason that matters at 80px on a photograph:
+     the larger x-height. Poppins is the rounder, more fashionable geometric, but
+     its small x-height loses lowercase legibility exactly where this design
+     needs it. The fixed furniture (lockup, badge, watermark, credit) stays on
+     Inter, which is the better face at 20-24px. */
+  --voice: 'Montserrat', 'Inter', 'Helvetica Neue', Arial, sans-serif;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -90,6 +109,12 @@ body {
   line-height: 0.86;
   letter-spacing: -0.02em;
 }
+/* d-xxl is the cover size and only the cover size. At 250px Anton, a word is
+   readable at roughly 105px per glyph, so the widest line that still fits the
+   936px content box is EIGHT characters. "DONE RIGHT" is ten and wraps — which
+   is why the scale stops here instead of going further: past this point the
+   copy, not the type, is what has to change. */
+.d-xxl { font-size: 250px; }
 .d-xl { font-size: 210px; }
 .d-l  { font-size: 152px; }
 .d-m  { font-size: 108px; }
@@ -107,6 +132,36 @@ body {
 }
 .card.bg-white .t-outline { -webkit-text-stroke-color: var(--ink); }
 .t-outline.on-accent { -webkit-text-stroke-color: var(--coral); }
+/* Display type standing on a photograph. White fill inside a heavy blue-deep
+   stroke — the travel reference's device, and the only one open to us, since a
+   soft drop shadow is out everywhere else in this system. paint-order draws the
+   stroke first, so a 16px stroke reads as an 8px halo around the letterform.
+
+   Not a substitute for a scrim. The contrast check credits the fill colour, not
+   the stroke, so white-on-sky still fails on a bright photo — the halo buys
+   separation from detail, the scrim buys the contrast. Use both. */
+.t-plate {
+  color: var(--white);
+  -webkit-text-stroke: 16px var(--blue-deep);
+  paint-order: stroke fill;
+}
+.t-plate.on-ink { -webkit-text-stroke-color: var(--ink); }
+
+/* Small rounded caption. The one soft-cornered object in the system, borrowed
+   from the travel reference for kickers and one-line captions. Keep it to one
+   per card: at two it stops reading as an accent and starts reading as UI. */
+.pill {
+  display: inline-block;
+  background: var(--white);
+  color: var(--blue);
+  border-radius: 999px;
+  padding: 15px 30px;
+  font: 700 26px/1 var(--text);
+}
+.pill.blue { background: var(--blue); color: var(--white); }
+.pill.coral { background: var(--coral); color: var(--white); }
+.pill.sand { background: var(--sand); color: var(--ink); }
+
 .t-box {
   background: var(--coral);
   color: var(--white);
@@ -161,10 +216,170 @@ body {
 
 /* ---------- layout archetypes ---------- */
 
+/* Shrink-wrap the type in the flex-column archetypes.
+   A block child of a column flex container stretches to the full content width,
+   so a .display box runs to the right frame edge however short the word is. The
+   renderer's collision check compares boxes, not glyphs — drop a photo into the
+   half of the card the word visibly leaves empty and it reports a hit against
+   type that is nowhere near it. Sizing the box to fit-content makes it describe
+   what is actually painted, which is what the check assumed all along.
+   .lay-quote already sets align-items on the container and needs no entry. */
+.lay-bleed > .headline,
+.lay-stack > .display,
+.lay-steps > .display,
+.lay-cta > .display,
+.lay-cta > .sub,
+.lay-cta > .label { align-self: flex-start; }
+
 /* 01 HOOK — oversized word bleeding off frame, boogie overlapping */
 .lay-bleed { display: flex; flex-direction: column; justify-content: center; padding: var(--pad); }
 .lay-bleed .headline { position: relative; z-index: 4; }
 .lay-bleed .sub { margin-top: 32px; max-width: 560px; position: relative; z-index: 4; }
+
+/* ============================================================================
+   SIMPLE — the photograph carries the card, the type gets out of the way.
+
+   This archetype deliberately suspends three rules the rest of this file is
+   built on. They are listed here rather than buried, because a future set that
+   uses .lay-simple is NOT breaking the brand and a future set that borrows
+   these pieces into an Anton card IS.
+
+   1. No colossal display type. UI_GUIDE principle 1 says the oversized word is
+      the layout. Here the picture is, and the headline is Inter 800 at 88px —
+      readable at thumbnail size, but it does not fight the photograph.
+   2. No brand-blue wash. .scrim-soft is BLACK, not blue-deep. A blue scrim
+      pulls a photo into the brand's colour register; the whole point of this
+      direction is that the place keeps its own colour.
+   3. Soft text shadow, which the anti-slop table bans outright. The ban exists
+      because blurred glows read as AI-template decoration — but on a photograph
+      a soft shadow is doing structural work, separating white letterforms from
+      whatever is behind them. It is legibility, not ornament, and it replaces
+      the .t-plate stroke which is far too loud for this register.
+
+   Everything else still holds: 72px safe area, the 100px bottom crop guard,
+   manifest-registered photos, one accent per card.
+   ========================================================================= */
+
+.lay-simple { display: flex; flex-direction: column; align-items: flex-start; padding: var(--pad); padding-top: 152px; }
+
+/* Black, not blue-deep. Two stops so the middle of the photograph — the part
+   people actually look at — stays untouched. */
+/* Stop positions are set to where the type actually lands, not to round
+   numbers: the headline occupies roughly 14-36% of the frame and the support
+   line plus credit sit in the bottom 12%. The first pass faded out too early
+   and the second headline line landed at 1.8:1 over a bright wall. */
+/* The top ramp holds near its maximum all the way to 35% instead of falling off
+   at 22%, and that is a consequence of the accent colour rather than a taste
+   change. White type survives a thin scrim because its luminance is 1.0; the
+   orange accent sits at 0.35, mid-scale, so it needs the ground under it pushed
+   genuinely dark or it disappears into a sunlit wall. Measured: the second
+   headline line on card 02 came out at 1.18:1 under the old ramp.
+   Below 35% the photograph is untouched, which is where it matters. */
+.photo-bg.scrim-soft::after {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.84) 0%, rgba(0, 0, 0, 0.78) 24%, rgba(0, 0, 0, 0.52) 35%, rgba(0, 0, 0, 0.16) 46%, rgba(0, 0, 0, 0) 60%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.78) 0%, rgba(0, 0, 0, 0.5) 16%, rgba(0, 0, 0, 0.16) 30%, rgba(0, 0, 0, 0) 46%);
+}
+
+/* The headline. 88px is the size at which two lines still clear the photograph's
+   subject on a 1080 square; going bigger starts covering the thing the card is
+   about, which is the failure this whole direction exists to fix. */
+/* 80, not 88: Montserrat sets appreciably wider than Inter at the same size, and
+   the longest line in a set ("in front of another") has to hold one line. Losing
+   8px of height buys back the width — and the larger x-height means it reads no
+   smaller than the Inter setting did. */
+.h-simple {
+  font: 800 80px/1.15 var(--voice);
+  letter-spacing: -0.02em;
+  color: var(--white);
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5), 0 1px 4px rgba(0, 0, 0, 0.4);
+  max-width: 936px;
+}
+
+/* The colour point. One phrase per card — the words the card exists to deliver.
+   Highlighting a second phrase halves the value of the first. */
+.h-simple .hi,
+.support .hi { color: var(--orange); }
+/* Weight alone separates the two headline lines. Dimming the second one to 0.85
+   read fine on screen and measured 2.00:1 over 99% of its footprint — a hair
+   above the fail line, on the half of the headline that carries the noun. */
+.h-simple .soft { font-weight: 700; }
+
+/* The credit has to stay readable to satisfy the licence it exists for. At the
+   global 0.5 it measured 2.2-2.4:1 on these photographs. */
+.lay-simple .photo-credit { opacity: 0.75; }
+
+/* Supporting copy, pinned to the foot rather than run under the headline: the
+   reference sets put one line of context at the bottom of the frame and leave
+   the middle to the picture. Cleared of the 100px crop guard. */
+.support {
+  position: absolute;
+  left: var(--pad);
+  right: 180px;
+  bottom: 118px;
+  font: 600 32px/1.42 var(--voice);
+  color: var(--white);
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.45);
+  z-index: 3;
+}
+
+/* Section marker, top right. Doubles as the card index, which is why this
+   archetype carries no separate .pager — one fixed object in one fixed place
+   does both jobs and the card stays quiet. */
+.badge {
+  position: absolute;
+  top: var(--pad);
+  right: var(--pad);
+  /* Ink on orange, not white on orange. White measures 2.6:1 here — under the
+     3.0 warning line — while ink is 8.1:1. The badge is the one place the accent
+     appears as a filled plate, so it is also the one place the ink/white choice
+     is decided by the plate rather than by the page. */
+  background: var(--orange);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 13px 26px;
+  font: 700 23px/1 var(--text);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  z-index: 5;
+}
+
+/* Handle set down the right edge, as in the reference carousels. Low contrast
+   on purpose — it is a watermark, so it is exempt from the contrast check and
+   says why. */
+.watermark {
+  position: absolute;
+  right: 30px;
+  /* Anchored top-right and rotated about that corner, so the text grows DOWNWARD
+     from a known y. Anchoring it to the bottom instead makes the rotated box
+     grow past the frame by however wide the handle happens to be — a bug that
+     only appears when someone changes the handle text. */
+  top: 372px;
+  transform: rotate(90deg);
+  transform-origin: right top;
+  font: 600 20px/1 var(--text);
+  letter-spacing: 0.14em;
+  color: var(--white);
+  opacity: 0.42;
+  white-space: nowrap;
+  z-index: 5;
+}
+
+/* 00 PHOTO — the picture is the card.
+   Top-aligned, not centred: the type takes the scrimmed head of the frame and
+   leaves the middle of the photograph clear, which is the whole point of the
+   layout. Supporting copy goes on a .wave foot rather than under the headline.
+
+   align-items: flex-start shrink-wraps each line so its box describes the word
+   rather than the full column — the same correction the other flex archetypes
+   needed once photos moved onto the cards. */
+.lay-photo { display: flex; flex-direction: column; align-items: flex-start; padding: var(--pad); padding-top: 156px; }
+.lay-photo .headline { max-width: 100%; }
+
+/* Copy standing on the foot wave. Pinned rather than in flow: its distance from
+   the bottom edge is set by the wave and the 100px crop guard, not by how tall
+   the headline above it turned out. */
+.foot-copy { position: absolute; left: var(--pad); right: var(--pad); bottom: 132px; }
 
 /* 02 PROBLEM — diagonal split, inverted halves */
 .lay-split { position: relative; }
@@ -290,6 +505,49 @@ body {
 .photo { position: absolute; z-index: 2; overflow: hidden; }
 .photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
 
+/* ---------- full-bleed background photo ----------
+   A background photo is a different object from a collage photo, and the
+   difference is load-bearing rather than cosmetic. A collage photo is a thing
+   ON the card and type must keep away from it — the renderer enforces that by
+   treating .photo as a collision anchor. A background photo IS the card, and
+   type is supposed to sit on it, so .photo-bg is exempt from that check while
+   staying subject to the manifest and provenance checks that matter.
+
+   z-index -3, under the card's own in-flow text. Painting order inside a
+   stacking context puts positioned z-index>=0 elements ABOVE inline text, so a
+   background at z-index 0 would bury every word on the card. Negative is the
+   only correct answer here, and .card's `isolation: isolate` keeps it from
+   escaping behind the card itself. */
+
+.photo-bg { inset: 0; width: auto; height: auto; z-index: -3; }
+.photo-bg img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Scrims. Type on a photograph is legible or it is not, and this brand has no
+   soft shadows to fall back on (see .photo-frame: offset solid, never blurred).
+   So legibility is bought with a plane of blue-deep between the picture and the
+   words — which also keeps a photo-led card inside the blue register instead of
+   letting six different photographs set six different colour schemes.
+
+   This is the one gradient permitted besides blue -> blue-deep. Everything else
+   in §1 still stands: no third hue, no other ramp.
+
+   Pick by where the type lands, and verify with the renderer's contrast check
+   rather than by eye — a scrim that looks ample over a dark hillside is nothing
+   over the same photo's sky. */
+.photo-bg::after { content: ''; position: absolute; inset: 0; }
+.photo-bg.scrim-top::after {
+  background: linear-gradient(180deg, rgba(11, 31, 140, 0.94) 0%, rgba(11, 31, 140, 0.6) 40%, rgba(11, 31, 140, 0) 70%);
+}
+.photo-bg.scrim-bottom::after {
+  background: linear-gradient(0deg, rgba(11, 31, 140, 0.94) 0%, rgba(11, 31, 140, 0.55) 34%, rgba(11, 31, 140, 0) 64%);
+}
+.photo-bg.scrim-both::after {
+  background: linear-gradient(180deg, rgba(11, 31, 140, 0.92) 0%, rgba(11, 31, 140, 0.3) 44%, rgba(11, 31, 140, 0.9) 100%);
+}
+/* Even wash. For cards whose content covers the whole frame and cannot be
+   pushed to one end. Costs the most photograph, so use it last. */
+.photo-bg.scrim-flat::after { background: rgba(11, 31, 140, 0.62); }
+
 /* Cutout collage — the reference language. Transparent PNG, no frame. */
 .photo-cut { overflow: visible; }
 .photo-cut img { height: 100%; width: auto; object-fit: contain; }
@@ -317,6 +575,73 @@ body {
   left: var(--pad);
   bottom: var(--pad);
 }
+
+/* ---------- waves — soft plane over the photograph ----------
+   The travel reference cuts its photo with an organic white curve and stands
+   the supporting copy on it. That solves a problem a scrim cannot: body copy
+   and a numbered list need a flat, quiet ground, and dimming a photograph until
+   28px text is comfortable on it means there is no photograph left.
+
+   z-index -2: above the background photo, below the card's text. Same painting
+   rule as .photo-bg — anything at 0 or above covers the words.
+
+   A wave at the foot flips what the fixed furniture stands on, so the pager and
+   the photo credit have to be flipped with .on-light. White on white is the
+   exact failure QA M3 caught on the .lay-split pager. */
+
+.wave { position: absolute; z-index: -2; pointer-events: none; }
+.wave svg { display: block; width: 100%; height: 100%; }
+.wave svg * { fill: var(--white); stroke: none; }
+.wave.blue svg * { fill: var(--blue); }
+.wave.deep svg * { fill: var(--blue-deep); }
+.wave.ink svg * { fill: var(--ink); }
+.wave.foot { left: 0; bottom: 0; width: 100%; }
+.wave.head { left: 0; top: 0; width: 100%; }
+
+/* Flip currentColor for anything standing on that light plane — text, the step
+   rules (which are drawn in currentColor), the pager, the credit line. */
+.on-light { color: var(--ink); }
+
+/* ---------- doodles — hand-drawn line marks ----------
+   The reference sets carry a layer our cards did not have: loose white line
+   art (sparks, arrows, scribbles, planes) drawn over the flat colour. It is
+   what keeps a type-only card from reading as a slide.
+
+   Two properties make this layer cheap, and both are the reason it is a
+   separate system from .blob rather than more blob variants:
+
+   1. It spends no accent budget. Strokes take `currentColor`, so on a blue or
+      ink card they are white and on a white card they are ink — never coral or
+      sand. A card can carry as many marks as it can hold without moving a
+      pixel toward the 15% accent ceiling.
+   2. It asserts nothing. A mark is not a place, a price or a time, so it
+      cannot restate a claim the ledger does not carry (ADR-013). Photos have
+      to clear provenance; these do not.
+
+   Sits at z-index 4 — over photos and blobs, under the fixed lockup/pager.
+   The renderer treats .doodle as an intentional bleed, so marks may run off
+   the frame. They must never run under the lockup or the pager: those two are
+   what tie six separate images into one set. */
+
+.doodle { position: absolute; z-index: 4; pointer-events: none; }
+.doodle svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.doodle svg * {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+/* Weight, not colour, is how a mark recedes. Dropping opacity instead would
+   make the stroke grey and pull it away from the white/ink type it belongs
+   with. */
+.doodle.thin svg * { stroke-width: 3; }
+/* For a mark that lands on a light plane inside a dark card — the white wedge
+   of .lay-split, a mono photo. Inheriting the card's white would erase it. */
+.doodle.ink { color: var(--ink); }
+.doodle.fat svg * { stroke-width: 9; }
+.doodle.dashed svg * { stroke-width: 8; stroke-dasharray: 0.1 22; }
 
 /* ---------- collage bits — use sparingly, max 2 per card ---------- */
 .blob { position: absolute; z-index: 1; }

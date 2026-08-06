@@ -34,22 +34,17 @@ _workspace/01_brief.json 있음 + 새 소재
   → 새 실행. _workspace/ → _workspace_prev/, output/ → output_prev/ 로 이동 후 Phase 1부터.
 ```
 
-이어서 선행 자산을 확인한다:
-- `assets/boogie/boogie-cutout.png` 존재 여부 → 없으면 **자산 준비**부터 (아래)
-- `.claude/skills/cardnews-render/scripts/node_modules` 존재 여부 → 없으면 렌더 셋업부터
+이어서 선행 조건을 확인한다:
 
-### 자산 준비 (최초 1회)
+| 확인 | 없으면 |
+|------|-------|
+| `.claude/skills/cardnews-render/scripts/node_modules` | 렌더 셋업부터 (아래) |
+| 카드 주제의 **사진 재고** — `assets/photos/manifest.json` | 카드 착수 전 보고. 없는 재고로 기획을 시작하지 않는다 |
+| 카드 주제의 **팩트 출처** — 그 장소의 블로그 발행본 | 블로그를 먼저 돌린다. 카드에는 출처를 달 자리가 없다 |
 
-`references/boogie.jpeg`는 465×659 흰 배경 JPEG다. 그대로는 블루 카드에 흰 사각형이 남는다.
+뒤의 두 줄이 순서를 바꾼다. **카드 주제가 장소일 때는 블로그가 카드보다 먼저다** — 카드가 쓰는 장소 사실은 블로그에 출처와 함께 이미 발행된 것이어야 하기 때문이다. Phase 2에서 셋을 동시에 돌리더라도 `blog-writer`가 팩트를 먼저 확정해 `card-producer`에게 넘겨야 한다.
 
-**착수 전 `sojourn-brand-system/references/boogie-usage.md`를 읽어라.** 부기는 부산시 저작물이고 허용되는 가공이 제한적이다.
-
-1. **고해상도 공식 에셋 확보가 최우선.** 부산시 캐릭터 페이지에서 원본을 받으면 아래 2·3단계가 불필요해진다. 라이선스 승인 신청 시 응용동작 3D 에셋 일체를 함께 요청하라
-2. Higgsfield `remove_background` → `assets/boogie/boogie-cutout.png` — 배경 제거는 캐릭터를 바꾸지 않으므로 허용된다
-3. 결과를 **눈으로 확인.** 흰 캐릭터 + 흰 배경이라 몸통 외곽이 파먹힐 수 있다. 외곽 훼손은 형태규정 위반이기도 하다. 깨졌으면 재시도
-4. (권장) `upscale_image` → `assets/boogie/boogie-cutout@2x.png`
-
-**하지 마라:** AI로 부기의 새 포즈·표정·의상을 생성하는 것. 라이선스가 2차적 저작물 작성을 금지한다. 포즈가 더 필요하면 공식 응용동작 카탈로그에서 고른다.
+**부기 자산 준비는 더 이상 선행 조건이 아니다** — 2026-08-03 사용자 결정으로 캐릭터 사용이 보류됐다. 보류가 풀리면 `sojourn-brand-system/references/boogie-usage.md`부터 다시 읽어라.
 
 렌더 셋업:
 ```bash
@@ -71,12 +66,17 @@ cd .claude/skills/cardnews-render/scripts && npm i && npx playwright install chr
 `TeamCreate`로 3인 팀을 구성한다: `card-producer`, `blog-writer`, `social-writer`.
 `TaskCreate`로 작업을 할당하고, 팀원들은 `SendMessage`로 자체 조율한다.
 
-**팀 내부 교환 의무 (중복 방지의 핵심):**
+**팀 내부 교환 의무:**
 ```
-card-producer  ──확정 Display 카피 목록──→ blog-writer, social-writer
+blog-writer    ──장소 사실 + 출처───────→ card-producer   ← 이 화살표가 먼저다
+card-producer  ──확정 헤드라인 목록─────→ blog-writer, social-writer
 blog-writer    ──핵심 문단 요지────────→ social-writer
 전원           ──facts 질의───────────→ campaign-strategist
 ```
+
+**첫 화살표의 방향이 중요하다.** 카드는 문장 옆에 출처를 달 수 없으므로, 카드가 쓰는 장소 사실은 블로그가 출처와 함께 **이미 책임진** 문장이어야 한다. `card-producer`가 블로그에 없는 장소 사실을 쓰고 싶으면 `blog-writer`에게 먼저 요청한다. 나머지 화살표는 중복 방지용이다 — 셋이 같은 문장을 쓰면 전부 얕아진다.
+
+`card-producer`는 `cardnews-render`의 4단계 절차를 따른다. 주제의 사진 재고가 없으면 **기획을 시작하기 전에** 리드에게 보고한다.
 
 역할 분담 원칙:
 - 카드 = **훅과 결론** (짧고 강하게)
@@ -107,7 +107,8 @@ blog-writer    ──핵심 문단 요지────────→ social-writ
 2. 승인 후 Higgsfield로 생성
 3. 완성 후 `brand-qa`에게 재검수 요청
 
-**게이트:** 부기 라이선스 승인완료 + QA PASS. 둘 중 하나라도 아니면 착수하지 않는다.
+**게이트:** QA PASS + Higgsfield 크레딧 확보. 둘 중 하나라도 아니면 착수하지 않는다.
+(부기 라이선스는 더 이상 게이트가 아니다 — 캐릭터 사용이 보류됐다.)
 
 ## 데이터 전달
 
@@ -118,9 +119,9 @@ blog-writer    ──핵심 문단 요지────────→ social-writ
 | QA 반려 | 메시지 — 담당자에게 직접. 리드 경유 금지 |
 
 ```
-_workspace/          01_brief.json · 03_cards.html · (prev 백업)
+_workspace/          01_brief.json · 02_carousel.json · 03_cards.html · (prev 백업)
 output/              cards/ · blog.md · social.json · qa_report.md · reels/
-assets/boogie/       boogie-cutout.png · boogie-cutout@2x.png
+assets/photos/       manifest.json (사진 원장) · place/ · concept/
 ```
 
 `_workspace/`는 지우지 마라. 사후 검증과 부분 재실행의 근거다.
@@ -132,7 +133,8 @@ assets/boogie/       boogie-cutout.png · boogie-cutout@2x.png
 | 에이전트 실패 | 1회 재시도. 재실패 시 해당 산출물 없이 진행하고 **최종 보고에 누락을 명시**한다 |
 | 랜딩 URL 404 | 전 산출물의 링크를 루트 도메인으로 대체하고 사용자에게 보고. 죽은 링크 발행 금지 |
 | 팩트 상충 | 삭제하지 말고 출처를 병기해 사용자에게 판단을 넘긴다 |
-| 부기 라이선스 미승인 | 내부 시안까지만 생산. 발행 판정은 HOLD |
+| 사진이 CC BY-SA | 세트는 완성하되 **발행 판정을 사용자에게 넘긴다.** 사진 위에 타입을 얹으면 카드가 2차적 저작물이라 동일 라이선스 배포 의무가 붙는다 |
+| 주제의 사진 재고 부족 | 카드 착수 전 보고. 문구를 먼저 짜고 사진을 나중에 찾으면 기획을 통째로 버린다 |
 | playwright 미설치 | 셋업 명령 실행. **프로젝트 루트에 package.json을 만들지 마라** — 저장소 Stop 훅이 없는 npm 스크립트를 돌려 매 턴 실패한다 |
 | Higgsfield 크레딧 부족 | Phase 4 중단, 사용자 보고. 품질을 낮춰 우회하지 마라 |
 
@@ -160,11 +162,11 @@ assets/boogie/       boogie-cutout.png · boogie-cutout@2x.png
 
 **정상 흐름**
 > "이번 주 소재는 감천문화마을 오전 타임. 캠페인 돌려줘"
-→ Phase 0 초기 실행 판별 → 자산 준비 확인 → 브리프(persona=visitor) → 팀 3인 병렬 제작 → 증분 QA → PASS → 릴스 여부 확인 → 완료 보고.
+→ Phase 0 초기 실행 판별 → 선행 조건 확인(렌더 셋업 O · 감천 사진 5장 O · 감천 블로그 발행본 O) → 브리프(persona=visitor) → 팀 3인 병렬 제작, `blog-writer`가 장소 사실을 먼저 확정해 `card-producer`에게 전달 → 증분 QA → 사진이 CC BY-SA라 **발행 판정을 사용자에게 넘김** → 릴스 여부 확인 → 완료 보고.
 
 **에러 흐름**
-> "캠페인 돌려줘" (부기 누끼 PNG 없음 + 랜딩 404)
-→ Phase 0에서 누끼 PNG 부재 감지 → 자산 준비 선행 → 브리프 단계에서 `landing.status: 404` 기록 및 사용자 보고 → CTA를 루트 도메인으로 대체해 제작 진행 → QA가 F(라이선스 미승인) BLOCKER 판정 → **HOLD** → 내부 시안까지만 산출하고 발행 보류를 보고.
+> "캠페인 돌려줘" (주제의 사진 0장 + 랜딩 404)
+→ Phase 0에서 사진 재고 부재 감지 → **카드 착수 전 보고**, 대안 주제 제안 또는 촬영 요청 등재 → 브리프 단계에서 `landing.status: 404` 기록 및 사용자 보고 → CTA를 루트 도메인으로 대체해 블로그·SNS만 진행 → 완료 보고에 카드 누락과 사유를 명시.
 
 **부분 재실행 흐름**
 > "3번 카드 문구만 바꿔줘"

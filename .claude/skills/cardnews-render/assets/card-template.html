@@ -2,99 +2,69 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Sojourn — Busan Private Tour card set</title>
-<link rel="stylesheet" href="brand.css">
-<!-- Copy this file to _workspace/03_cards.html and edit the six sections.
-     Keep the <section class="card"> wrappers and the .lockup/.pager blocks intact:
-     the renderer screenshots each section, and the fixed lockup is what makes six
-     separate images read as one set.
-     Fix the stylesheet href to point at this skill's assets/brand.css. -->
+<title>Sojourn — card set template (.lay-simple)</title>
+<link rel="stylesheet" href="../.claude/skills/cardnews-render/assets/brand.css">
+<!-- 이 파일을 `_workspace/03_cards.html`로 복사해서 편집한다.
+     경로는 _workspace/ 기준으로 이미 맞춰져 있다 — 그대로 두면 된다.
+
+     4단계 절차의 4단계(생성)에서만 쓴다. 여기 오기 전에 `_workspace/02_carousel.json`에
+     주제·6칸 기획·사진 선별이 채워져 있어야 한다. 비어 있으면 1단계로 돌아가라.
+
+     고정 요소 3개(.lockup / .badge / .watermark)는 6장 전부 같은 자리에 둔다.
+     이것이 6장을 한 세트로 묶는 유일한 장치다.
+
+     치수·클래스·유예된 브랜드 규칙은 brand.css의 SIMPLE 블록에 있다.
+     여기서 색이나 크기를 인라인으로 새로 정의하지 마라 — 허용되는 인라인은
+     사진 크롭(transform)과 폭 미세조정(max-width)뿐이다.
+
+     아래는 카드 1장의 골격이다. 6장으로 복제하고 badge의 인덱스를 01~06으로 맞춘다.
+-->
 </head>
 <body>
 
-<!-- ============ 01 · HOOK ============ -->
-<section class="card bg-blue lay-bleed">
-  <div class="lockup"><span class="mark">SOJOURN KOREA</span><span class="handle">@sojournkorea</span></div>
+<!-- ============ 01 · COVER ============ -->
+<section class="card bg-ink lay-simple">
 
-  <div class="headline">
-    <div class="display d-xl t-solid">ONE DAY</div>
-    <div class="display d-xl t-box bleed-r">IN BUSAN</div>
-  </div>
-  <p class="sub">A private driver, your pace, zero planning.</p>
-
-  <div class="boogie pose-hero"><img src="../../../../assets/boogie/boogie-cutout.png" alt=""></div>
-  <p class="char-credit at-bottom">BOOGI ©2021. Busan Metropolitan City All Rights Reserved.</p>
-  <div class="pager">01 / 06</div>
-</section>
-
-<!-- ============ 02 · PROBLEM ============ -->
-<section class="card bg-blue lay-split">
-  <div class="lockup"><span class="mark">SOJOURN KOREA</span><span class="handle">@sojournkorea</span></div>
-
-  <div class="half-top">
-    <div class="display d-l t-outline">6 HOURS</div>
-  </div>
-  <div class="half-bottom">
-    <div class="display d-m t-solid">ON A BUS</div>
-    <p class="body" style="margin-top:24px;max-width:620px">Group tours move on a timetable. Yours doesn't have to.</p>
+  <!-- 배경 사진. data-photo는 assets/photos/manifest.json의 키와 정확히 일치해야 하고,
+       data-slot은 그 원장의 slot과 같아야 한다. 렌더러가 대조해서 막는다.
+       사진이 원본 비율 때문에 주제를 놓치면 style="transform:scale(N) translate(x%,y%)"로
+       크롭한다 — overflow 안에서 잘리므로 프레임을 벗어나지 않는다. -->
+  <div class="photo photo-bg scrim-soft">
+    <img src="../assets/photos/place/PLACEHOLDER.jpg"
+         data-photo="place/PLACEHOLDER.jpg" data-slot="place" alt="">
   </div>
 
-  <div class="pager">02 / 06</div>
+  <div class="lockup"><span class="mark">SOJOURN KOREA</span></div>
+  <span class="badge">Section · 01</span>
+
+  <!-- 헤드라인은 2줄. 각 줄이 Montserrat 800 80px에서 한 줄에 들어가야 한다.
+       세 줄로 접히면 크기를 줄이지 말고 단어를 바꿔라.
+       .hi는 카드당 정확히 하나 — 그 카드가 전달하려는 구절 하나만 칠한다. -->
+  <h2 class="h-simple"><span class="hi">Accent</span> phrase<br><span class="soft">second line</span></h2>
+
+  <!-- 지지문 1~2줄. 헤드라인이 못 담은 근거. -->
+  <p class="support">One supporting line that carries the reason.</p>
+
+  <p class="watermark" data-contrast-exempt="watermark, deliberately low contrast">@sojournkorea</p>
+
+  <!-- rights가 own / ai:* 이면 이 줄을 지운다. licensed:* 면 필수다 (렌더러가 막는다). -->
+  <p class="photo-credit">Photo: AUTHOR / SOURCE · LICENCE</p>
 </section>
 
-<!-- ============ 03 · SOLUTION ============ -->
-<section class="card bg-white lay-stack">
-  <div class="lockup"><span class="mark">SOJOURN KOREA</span><span class="handle">@sojournkorea</span></div>
+<!-- ============ 02 ~ 06 ============
+     위 <section>을 복제하고 badge 인덱스와 내용을 바꾼다.
+     기본 역할 배분은 cardnews-render SKILL.md의 2단계 표 참조:
+       01 COVER · 02 THE TURN · 03 WHAT YOU SEE · 04 THE ASK · 05 BEFORE YOU GO · 06 WITH US
+     06에만 오퍼와 URL을 넣는다. 여섯 장 전부가 광고면 저장되지 않는다.
 
-  <div class="label" style="color:var(--coral)">WHAT YOU GET</div>
-  <div class="display d-l t-solid">YOUR CAR.<br>YOUR CLOCK.</div>
-  <p class="body" style="max-width:460px">Start at 9. Or noon. Stay at Gamcheon an extra hour because the light is good.</p>
+     렌더:
+       node .claude/skills/cardnews-render/scripts/render-cards.mjs \
+            _workspace/03_cards.html output/cards
 
-  <div class="boogie pose-side"><img src="../../../../assets/boogie/boogie-cutout.png" alt=""></div>
-  <p class="char-credit at-bottom">BOOGI ©2021. Busan Metropolitan City All Rights Reserved.</p>
-  <div class="pager">03 / 06</div>
-</section>
-
-<!-- ============ 04 · PROOF ============ -->
-<section class="card bg-ink lay-quote">
-  <div class="lockup"><span class="mark">SOJOURN KOREA</span><span class="handle">@sojournkorea</span></div>
-  <div class="blob ring" style="top:150px;left:90px"></div>
-
-  <div class="quote-box">
-    <p class="body">"We landed at 11 and were eating at Jagalchi by 1. Nobody rushed us once."</p>
-    <p class="attrib">— Family of four, Singapore</p>
-  </div>
-
-  <div class="pager">04 / 06</div>
-</section>
-
-<!-- ============ 05 · ITINERARY ============ -->
-<section class="card bg-blue lay-steps">
-  <div class="lockup"><span class="mark">SOJOURN KOREA</span><span class="handle">@sojournkorea</span></div>
-
-  <div class="display d-m t-sand" style="margin-bottom:28px">A SAMPLE DAY</div>
-  <div class="step"><span class="n">1</span><span class="txt"><span class="t">Gamcheon Culture Village</span><span class="d">Morning light, before the crowds</span></span></div>
-  <div class="step"><span class="n">2</span><span class="txt"><span class="t">Jagalchi Market</span><span class="d">Lunch, picked off the counter</span></span></div>
-  <div class="step"><span class="n">3</span><span class="txt"><span class="t">Haeundae &amp; Blue Line</span><span class="d">Coast road, seats facing the water</span></span></div>
-  <div class="step"><span class="n">4</span><span class="txt"><span class="t">Gwangalli at 8pm</span><span class="d">Bridge lights on, dinner by the sand</span></span></div>
-
-  <div class="pager">05 / 06</div>
-</section>
-
-<!-- ============ 06 · CTA ============ -->
-<section class="card bg-grad lay-cta">
-  <div class="lockup"><span class="mark">SOJOURN KOREA</span><span class="handle">@sojournkorea</span></div>
-
-  <div class="display d-l t-solid">TELL US<br><span class="t-sand">YOUR DAY</span></div>
-  <p class="sub" style="margin-top:28px;max-width:520px">We build the route around it.</p>
-
-  <div class="boogie pose-cta"><img src="../../../../assets/boogie/boogie-cutout.png" alt=""></div>
-  <p class="char-credit above-band">© 2021. Busan Metropolitan City</p>
-  <div class="cta-band">
-    <span class="go">Book a private day</span>
-    <span class="url">sojournkorea.net/private-tour</span>
-  </div>
-</section>
+     exit code가 0이 아니면 PNG가 나왔어도 완료가 아니다.
+     액센트를 새로 넣었거나 사진을 바꿨으면 대비 검사 결과를 반드시 다시 확인하라 —
+     오렌지는 휘도가 중간이라 흰 글자보다 훨씬 두꺼운 스크림을 요구하고, 눈으로는 안 보인다.
+-->
 
 </body>
 </html>

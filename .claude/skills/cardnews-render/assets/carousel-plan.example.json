@@ -1,0 +1,143 @@
+{
+  "_readme": [
+    "2·3단계 산출물의 형식이자 실제 예시다. 감천 세트(2026-08-05)를 그대로 담았다.",
+    "1단계는 topic과 gate를, 2단계는 cards[].copy와 fact_source·image_intent를,",
+    "3단계는 cards[].photo를 채운다. 한 파일에 누적하는 이유는 어느 카드가 어느 사실에",
+    "기대고 어느 사진을 쓰는지가 한 화면에 보여야 팩트·라이선스 검수가 가능하기 때문이다.",
+    "",
+    "fact_source가 빈 카드는 아직 기획이 안 된 카드다.",
+    "photo.rights가 CC BY-SA인 카드가 하나라도 있으면 세트 전체가 발행 판정 대기다."
+  ],
+
+  "topic": "Gamcheon Culture Village",
+  "campaign_id": "gamcheon-culture-village",
+
+  "gate": {
+    "on_route": true,
+    "on_route_source": "01_brief.json facts[1] — Busan Highlights 코스 구성",
+    "fact_source": "블로그 발행본 content/posts/2026-08-04-gamcheon-culture-village.md",
+    "photos_available": 5,
+    "verdict": "PASS",
+    "note": "세 조건 모두 충족. 사진 5장 전부 CC BY-SA 2.0이라 3단계 라이선스 게이트에 걸린다."
+  },
+
+  "cards": [
+    {
+      "n": 1,
+      "role": "COVER",
+      "badge": "Busan · 01",
+      "copy": {
+        "headline": ["Gamcheon", "Culture Village"],
+        "accent": "Gamcheon",
+        "support": "Busan's painted hillside — and the part the photographs leave out."
+      },
+      "fact_source": "장소명. 사실 주장 없음",
+      "image_intent": "마을 전체가 사면을 덮은 전경 — 이 장소가 무엇인지 한 장으로",
+      "photo": {
+        "key": "place/gamcheon-44835393715.jpg",
+        "slot": "place",
+        "rights": "licensed:wikimedia/CC BY-SA 2.0 — bryan...",
+        "credit_required": true
+      }
+    },
+    {
+      "n": 2,
+      "role": "THE TURN",
+      "badge": "The name · 02",
+      "copy": {
+        "headline": ["The nickname", "was a grant title"],
+        "accent": "grant title",
+        "support": "It came from a 2009 village arts competition — not from anyone who lives here."
+      },
+      "fact_source": "블로그 — 2009년 마을미술 공모 당선작 제목이 'Dreaming of Busan's Machu Picchu'",
+      "image_intent": "골짜기 건너에서 본 마을 — 통념이 만들어진 바로 그 구도",
+      "photo": {
+        "key": "place/gamcheon-hero-src.jpg",
+        "slot": "place",
+        "rights": "licensed:wikimedia/CC BY-SA 2.0 — bryan...",
+        "credit_required": true,
+        "crop": "scale(2.3) translateY(-19%) — 원본 3:2라 정사각 크롭 시 2/3이 하늘"
+      }
+    },
+    {
+      "n": 3,
+      "role": "WHAT YOU SEE",
+      "badge": "The design · 03",
+      "copy": {
+        "headline": ["No house stands", "in front of another"],
+        "accent": "No house",
+        "support": "The stepped rows are the whole plan. Every home keeps its light and its view of the water."
+      },
+      "fact_source": "블로그 — 계단식 배치 규칙(앞집이 뒷집의 빛과 바다 조망을 가리지 않는다)",
+      "image_intent": "마을 안쪽에서 본 지붕들 — 계단식 배치가 눈에 보이는 각도",
+      "photo": {
+        "key": "place/gamcheon-31877408798.jpg",
+        "slot": "place",
+        "rights": "licensed:wikimedia/CC BY-SA 2.0 — bryan...",
+        "credit_required": true
+      }
+    },
+    {
+      "n": 4,
+      "role": "THE ASK",
+      "badge": "Please note · 04",
+      "copy": {
+        "headline": ["Those are", "front doors"],
+        "accent": "front doors",
+        "support": "People live in these alleys. Keep your voice down and stay out of the private lanes."
+      },
+      "fact_source": "블로그 — 마을 곳곳의 안내판이 정숙과 사유 골목 출입 자제를 요청",
+      "image_intent": "실제 주거 골목 — 관광 동선이 아니라 사람이 사는 폭",
+      "photo": {
+        "key": "place/gamcheon-30809164987.jpg",
+        "slot": "place",
+        "rights": "licensed:wikimedia/CC BY-SA 2.0 — bryan...",
+        "credit_required": true
+      }
+    },
+    {
+      "n": 5,
+      "role": "BEFORE YOU GO",
+      "badge": "Before you go · 05",
+      "copy": {
+        "headline": ["It is stairs,", "end to end"],
+        "accent": "stairs",
+        "support": "There is no flat version of Gamcheon. Come ready to climb."
+      },
+      "fact_source": "블로그 — 능선 길 외에는 전부 계단",
+      "image_intent": "실제로 걸어야 하는 계단",
+      "photo": {
+        "key": "place/gamcheon-30809161817.jpg",
+        "slot": "place",
+        "rights": "licensed:wikimedia/CC BY-SA 2.0 — bryan...",
+        "credit_required": true,
+        "mismatch": "image_intent와 어긋난다 — 이 사진은 계단이 아니라 비탈길이다. 원장에 감천 계단 사진이 없어 차선을 썼다. manifest.wanted에 촬영 요청 등재됨"
+      }
+    },
+    {
+      "n": 6,
+      "role": "WITH US",
+      "badge": "With us · 06",
+      "copy": {
+        "headline": ["Start at the top.", "Walk down."],
+        "accent": "top",
+        "support": "Dropped at the top. Collected at the bottom.\nwww.sojournkorea.net/private-tour"
+      },
+      "fact_source": "블로그 'How we help' + 01_brief.json facts[5] (전용 차량·맞춤 일정)",
+      "image_intent": "위에서 아래로 내려가는 동선이 읽히는 사면",
+      "photo": {
+        "key": "place/gamcheon-hero-src.jpg",
+        "slot": "place",
+        "rights": "licensed:wikimedia/CC BY-SA 2.0 — bryan...",
+        "credit_required": true,
+        "crop": "scale(2.4) translate(9%,-13%) — 02와 다른 구획을 쓴다"
+      }
+    }
+  ],
+
+  "publish_gate": {
+    "status": "HOLD",
+    "reason": "사진 6개 슬롯 전부 CC BY-SA 2.0. 사진 위에 타입을 얹으면 카드가 2차적 저작물이 되어 카드 자체를 CC BY-SA 2.0으로 배포해야 한다. 저작자 표기는 유효하다(Flickr 계정명이 실제로 'bryan...', ID 91049143@N00, 커먼즈 확인).",
+    "resolution": "자사 실사진으로 교체하면 소멸. docs/SHOTLIST.md"
+  }
+}

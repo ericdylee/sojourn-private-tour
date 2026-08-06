@@ -9,13 +9,31 @@
   ],
   "photos": [
     {
-      "file": "concept/crowded-bus.png",
+      "file": "concept/open-road.png",
       "slot": "concept",
-      "subject": "Interior of a crowded tour bus, black and white cutout",
+      "subject": "An empty two-lane road curving between low coastal hills toward open sea, early light",
       "ai_generated": true,
-      "rights": "ai:higgsfield/marketing_studio_image",
+      "rights": "ai:gpt-image-2",
       "shot_at": null,
-      "note": "카드 02 PROBLEM. 특정 버스·특정 회사가 아니므로 장소 약속과 무관하다."
+      "note": "카드 03 SOLUTION 배경. 무드컷이지 장소가 아니다 — 표지판·노면 문자·차량 없이 생성해 어떤 지점도 지목하지 않는다. 카드 카피가 말하는 것은 '순서를 네가 정한다'이지 특정 도로가 아니다. **부산처럼 보이지 않는다는 점은 알고 쓴다** — 식별 가능한 부산을 그리는 순간 ADR-010 위반이 되므로, 익명성이 결함이 아니라 조건이다."
+    },
+    {
+      "file": "concept/coast-road-branch.png",
+      "slot": "concept",
+      "subject": "High view of a rocky wooded coastline where a road and a footpath diverge, open sea right",
+      "ai_generated": true,
+      "rights": "ai:gpt-image-2",
+      "shot_at": null,
+      "note": "카드 04 PROOF(THREE ROUTES) 배경. 길이 갈라지는 형상이 '세 갈래 코스'를 은유할 뿐 특정 해안을 지목하지 않는다. 전임 `place/yonggungsa-bridge.jpg`(CC BY 2.0)를 대체했다."
+    },
+    {
+      "file": "concept/sea-blue-hour.png",
+      "slot": "concept",
+      "subject": "Calm open sea at blue hour from a low rocky shore, anonymous low coastline lights on the horizon",
+      "ai_generated": true,
+      "rights": "ai:gpt-image-2",
+      "shot_at": null,
+      "note": "카드 06 CTA 배경. **현수교를 명시적으로 배제하고 생성했다** — 물 건너 조명이 들어온 다리를 그리면 그건 광안대교 주장이 되고, 원장에 없는 장소 약속이 된다(ADR-010·013). 수평선의 불빛은 익명의 낮은 해안선이다. 전임 `place/haedong-yonggungsa-panorama.jpg`(CC BY-SA 4.0)를 대체했다."
     },
     {
       "file": "concept/clock-no-hands.png",
@@ -127,6 +145,12 @@
     }
   ],
   "wanted": [
+    {
+      "slot": "place",
+      "subject": "감천문화마을 — 실제로 올라야 하는 계단. 위나 아래에서 본 계단 자체가 주제여야 하고, 비탈길이 아니라 단이 보여야 한다",
+      "for": "감천 세트 카드 05 (It is stairs, end to end)",
+      "why": "3단계 이미지 선별에서 발견. 원장의 감천 5장 중 계단이 주제인 컷이 없어 비탈길 사진을 차선으로 썼고, 문구와 그림이 어긋난 채로 남아 있다"
+    },
     {
       "slot": "place",
       "subject": "Jagalchi Market — 좌판 위 해산물 클로즈업",
