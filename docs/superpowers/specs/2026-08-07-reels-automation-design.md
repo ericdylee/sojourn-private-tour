@@ -286,8 +286,14 @@ Playwright의 스크린샷 버퍼를 ffmpeg stdin으로 바로 흘리면 임시 
   render-cards.mjs    1080×1080 (위 둘을 import — 동작 불변)
   render-reel.mjs     1080×1920 (신규)
   package.json        playwright — 그대로 공유
-assets/fonts/         Montserrat · Inter woff2 + OFL 라이선스 (신규)
+.claude/skills/cardnews-render/assets/
+  reel.css            9:16 조판 시스템 (신규)
+  fonts/              woff2 + fonts.css + OFL 라이선스 (신규)
 ```
+
+폰트를 저장소 루트 `assets/`가 아니라 **스킬 자산 안에** 둔다. `brand.css`에서
+`@import url('./fonts/fonts.css')` 한 줄로 끝나고, 루트에 두면 경로가
+`../../../../assets/fonts/`가 되어 깨지기 쉽다.
 
 **디렉터리를 하나로 둔다.** `CLAUDE.md`의 CRITICAL 규칙이 렌더 의존성 격리 위치로 이 경로를
 지목하고 있고, 두 번째 `package.json`을 만들면 playwright 버전이 두 군데서 갈린다. 대가는
