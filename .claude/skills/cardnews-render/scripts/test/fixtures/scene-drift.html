@@ -1,0 +1,15 @@
+<!doctype html>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../../assets/reel.css">
+<style>
+  body { margin: 0; }
+  /* Starts black, ends white, with white type on top. A single mid-scene
+   * measurement reads ~50% grey and passes; the last frame is white on white. */
+  .drift { position: absolute; inset: 0; z-index: 0; background: #000; animation: wash 3000ms linear both; }
+  @keyframes wash { from { background: #000; } to { background: #fff; } }
+  .reel-scene .scrim { display: none; }
+</style>
+<section class="reel-scene" style="--dur: 3000ms">
+  <div class="drift"></div>
+  <div class="type"><h1 class="display">Two words</h1></div>
+</section>

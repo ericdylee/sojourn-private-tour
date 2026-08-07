@@ -51,3 +51,22 @@ test('헤드라인이 아예 없는 씬을 잡는다', async () => {
   assert.ok(issues.length > 0, '.display가 없으면 잡아야 한다');
   assert.match(issues[0], /HEADLINE/);
 });
+
+import { checkContrastOverTime } from '../lib/reel-checks.mjs';
+
+test('씬 중간만 보면 통과하지만 끝에서 무너지는 대비를 잡는다', async () => {
+  const { browser, page, el } = await scene('scene-drift.html');
+  const { issues } = await checkContrastOverTime(page, el, { label: 'scene 01', durationMs: 3000 });
+  await browser.close();
+  assert.ok(
+    issues.some((i) => /CONTRAST/.test(i)),
+    `끝 프레임의 흰 글자 on 흰 배경을 잡아야 한다 — ${JSON.stringify(issues)}`,
+  );
+});
+
+test('정상 씬은 3프레임 전부 통과한다', async () => {
+  const { browser, page, el } = await scene('scenes-ok.html');
+  const { issues } = await checkContrastOverTime(page, el, { label: 'scene 01', durationMs: 3000 });
+  await browser.close();
+  assert.deepEqual(issues, []);
+});
