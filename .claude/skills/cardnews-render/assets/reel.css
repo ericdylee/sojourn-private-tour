@@ -1,0 +1,141 @@
+/* ---------------------------------------------------------------------------
+ * 9:16 reel system. Tokens come from brand.css — this file only adds the
+ * vertical frame, the motion vocabulary and the safe areas.
+ *
+ * Why re-typeset instead of pasting the 1:1 card PNG into a 1080x1920 canvas:
+ * the v4 cards are full-bleed photographs. Caging one between colour bands
+ * throws away the thing that makes v4 v4. We own the HTML, so we re-crop.
+ * ------------------------------------------------------------------------ */
+@import url('./brand.css');
+
+.reel-scene {
+  position: relative;
+  width: 1080px;
+  height: 1920px;
+  overflow: hidden;
+  background: var(--ink);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  /* Bottom 400px is covered by Instagram's caption and buttons; top 200px by
+   * the account row. Nothing that must be read goes there. The check in
+   * reel-checks.mjs enforces this — these paddings only make the layout obey
+   * it by default. */
+  padding: 200px 72px 400px;
+}
+
+/* --- background photo ---------------------------------------------------- */
+.reel-scene .photo-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+.reel-scene .photo-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* object-position is per scene — a 1:1 crop moved to 9:16 loses the left and
+   * right of the frame, so which part survives is an editorial decision. It is
+   * recorded in 04_reel_plan.json and confirmed by a human before capture. */
+  object-position: var(--crop, 50% 50%);
+}
+
+/* Black scrim buys contrast for the type without a soft shadow, which the
+ * brand system forbids. Same device as .lay-simple on the cards. */
+.reel-scene .scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.55) 0%,
+    rgba(0, 0, 0, 0.15) 35%,
+    rgba(0, 0, 0, 0.25) 60%,
+    rgba(0, 0, 0, 0.75) 100%
+  );
+}
+
+.reel-scene .type {
+  position: relative;
+  z-index: 2;
+  /* .type is flush against the padding-bottom edge via flex's
+   * justify-content:flex-end, so .sub's own box always ends exactly at the
+   * 400px line regardless of copy length — while .photo-credit sits at a
+   * fixed bottom:420px, only 20px above that line. The two collide: measured
+   * on the reference fixture, the credit's box (bottom 420-446px) falls
+   * entirely inside .sub's box (bottom 400-452px) and the two lines of text
+   * render on top of each other. Not a fixture artifact — .sub's bottom edge
+   * never moves, so this recurs on every scene that pairs a sub line with a
+   * credit. 72px (the standard safe-area pad) opens a slot below .type large
+   * enough for the credit's ~26px line with room to spare. */
+  margin-bottom: 72px;
+}
+
+/* --- type ---------------------------------------------------------------- */
+.reel-scene .display {
+  font-family: var(--voice);
+  font-weight: 800;
+  font-size: 96px;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 0 0 28px;
+  max-width: 936px;
+}
+.reel-scene .display .accent { color: var(--orange); }
+
+.reel-scene .sub {
+  font-family: var(--voice);
+  font-weight: 600;
+  font-size: 40px;
+  line-height: 1.3;
+  color: #fff;
+  margin: 0;
+  max-width: 880px;
+}
+
+/* Credit sits ABOVE the bottom 400px band. On the cards it lives inside the
+ * crop guard (QA m2) — the one element that satisfies the licence obligation
+ * placed where the system says things may be cut. Not repeated here. */
+.reel-scene .photo-credit {
+  position: absolute;
+  left: 72px;
+  bottom: 420px;
+  z-index: 2;
+  font-family: var(--text);
+  font-weight: 400;
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+}
+
+/* --- motion -------------------------------------------------------------- */
+/* Deliberately three. Camera work is restrained: heavy motion makes the type
+ * unreadable, and the type is the message. */
+@keyframes kenburns { from { transform: scale(1); } to { transform: scale(1.08); } }
+.m-kenburns img { animation: kenburns var(--dur, 3000ms) linear both; transform-origin: center; }
+
+@keyframes typein { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+.m-type-in { animation: typein 400ms cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+.m-type-in.delay-1 { animation-delay: 160ms; }
+
+/* --- internal draft banner ----------------------------------------------- */
+/* Burned into the frame, not drawn by ffmpeg: it belongs to the brand system
+ * and needs no font dependency outside the browser. Turned on by
+ * <body class="internal">, decided before capture by reel-gate.mjs. */
+body.internal .reel-scene::after {
+  content: 'INTERNAL DRAFT — NOT FOR PUBLICATION';
+  position: absolute;
+  z-index: 9;
+  left: 0;
+  right: 0;
+  top: 96px;
+  padding: 14px 0;
+  background: #c0261f;
+  color: #fff;
+  font-family: var(--text);
+  font-weight: 800;
+  font-size: 28px;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
