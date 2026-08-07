@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { writeFile, mkdtemp } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { decideGate } from '../lib/reel-gate.mjs';
+import { decideGate, isClearRights } from '../lib/reel-gate.mjs';
 
 async function qaFile(body) {
   const dir = await mkdtemp(join(tmpdir(), 'qa-'));
@@ -186,4 +186,70 @@ test('qaReportPath가 null이면 던지지 않고 사유가 사람이 읽을 수
   assert.equal(g.internal, true);
   assert.ok(!g.reasons.some((r) => r.includes('null를')), g.reasons.join(' / '));
   assert.ok(g.reasons.some((r) => r.includes('QA')), g.reasons.join(' / '));
+});
+
+// --- 라운드 2: 같은 결함군의 잔존 false-open + CLEAR 단독 커버리지 --------
+//
+// CRITICAL(잔존): stripCodeFences가 백틱 펜스만 다뤄서 물결(~~~) 펜스와
+// 4칸 들여쓰기 코드블록 안의 PASS 예시는 여전히 그대로 살아남아 게이트를 연다.
+// 오늘 이 저장소 문서에 그런 펜스가 없다는 건 이유가 안 된다 — 원래 CRITICAL도
+// 문서 순서 운이었을 뿐이다.
+
+test('물결(~~~) 펜스 코드블록 안의 PASS 예시는 무시하고, 그 아래 진짜 HOLD를 본다', async () => {
+  const body = '# QA\n\n~~~\n**판정: PASS**  (문서 예시)\n~~~\n\n**판정: HOLD**   BLOCKER 1\n';
+  const p = await qaFile(body);
+  const g = await decideGate({ qaReportPath: p, rights: CLEAN });
+  assert.equal(g.internal, true, g.reasons.join(' / '));
+  assert.ok(
+    g.reasons.some((r) => /HOLD/.test(r)),
+    g.reasons.join(' / '),
+  );
+});
+
+test('4칸 들여쓴 판정 줄은 코드블록인지 실제 판정인지 확신할 수 없어 INTERNAL이다 (그 아래 HOLD로 몰래 건너뛰지 않는다)', async () => {
+  const body = '# QA\n\n    **판정: PASS**\n\n**판정: HOLD**\n';
+  const p = await qaFile(body);
+  const g = await decideGate({ qaReportPath: p, rights: CLEAN });
+  assert.equal(g.internal, true, g.reasons.join(' / '));
+  // 애매한 줄 자체가 사유여야 한다 — 아래 HOLD를 대신 채택(discard)하는 것도,
+  // 위 PASS를 그대로 신뢰(trust)하는 것도 둘 다 금지.
+  assert.ok(
+    g.reasons.some((r) => r.includes('들여쓰기') && r.includes('PASS')),
+    g.reasons.join(' / '),
+  );
+});
+
+test('2칸 들여쓰기는 코드블록 기준(4칸) 미만이라 정상 판정으로 읽는다 — 과잉 스트리핑 아님', async () => {
+  const body = '# QA\n\n  **판정: PASS**\n';
+  const p = await qaFile(body);
+  const g = await decideGate({ qaReportPath: p, rights: CLEAN });
+  assert.equal(g.internal, false, g.reasons.join(' / '));
+});
+
+test('닫히지 않은 펜스는 CommonMark대로 문서 끝까지 코드로 본다 — 그 안의 PASS로 열리지 않는다', async () => {
+  const body = '# QA\n\n```\n**판정: PASS**\n';
+  const p = await qaFile(body);
+  const g = await decideGate({ qaReportPath: p, rights: CLEAN });
+  assert.equal(g.internal, true, g.reasons.join(' / '));
+});
+
+test('기존 동작 보존 — 홀수(3개) 펜스 마커: 갇힌 PASS는 못 찾고 fail-closed로 남는다', async () => {
+  const body = '# QA\n\n```\n**판정: PASS**\nsome text\n```\nrandom content\n```\n';
+  const p = await qaFile(body);
+  const g = await decideGate({ qaReportPath: p, rights: CLEAN });
+  assert.equal(g.internal, true, g.reasons.join(' / '));
+  assert.ok(
+    g.reasons.some((r) => /판정 줄을 찾지 못했다/.test(r)),
+    g.reasons.join(' / '),
+  );
+});
+
+// 커버리지 갭: decideGate를 통해서만 테스트하면 BLOCKING이 항상 먼저 돌아
+// CLEAR 자신의 정확성은 아무도 못 잡는다(리뷰어가 CLEAR를 BY-SA도 매칭하게
+// 넓혀도 18/18이 그대로 통과했다). CLEAR를 직접, 체크 순서와 무관하게 잡는다.
+
+test('CLEAR 단독 검증 — BLOCKING 체크 순서와 무관하게 SA/NC/ND 계열을 clear로 오판하지 않는다', () => {
+  for (const s of ['CC BY-SA 2.0', 'CC BY-NC 4.0', 'CC BY-ND 2.0']) {
+    assert.equal(isClearRights(s), false, s);
+  }
 });

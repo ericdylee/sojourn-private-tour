@@ -31,6 +31,17 @@ const BLOCKING = /\b(BY-SA|BY-NC|BY-ND|ShareAlike|NonCommercial|NoDerivatives?|N
  * but BLOCKING is tested first anyway, so the two rules cannot disagree. */
 const CLEAR = /(^(own\b|ai:))|\b(CC0|public domain|CC BY \d(\.\d)?|unsplash)\b/i;
 
+/** Exposed purely for direct testing: whether `s` looks like recognised,
+ * unencumbered provenance by itself — independent of BLOCKING and of check
+ * order. decideGate always runs BLOCKING first and never calls this in
+ * isolation, so this export exists only so a test can pin CLEAR's own
+ * correctness (e.g. that it never matches a BY-SA/BY-NC/BY-ND string). Without
+ * it, a future reorder of the two checks could silently let CLEAR alone
+ * decide an encumbered licence is fine, and no test would notice. */
+export function isClearRights(s) {
+  return CLEAR.test(s ?? '');
+}
+
 /** Verdicts we recognise as a deliberate, named non-pass (gets a short,
  * specific reason). Anything else that isn't PASS is unrecognised text —
  * Korean prose, a qualified "PASS(조건부)", an empty capture — and gets a
@@ -38,10 +49,34 @@ const CLEAR = /(^(own\b|ai:))|\b(CC0|public domain|CC BY \d(\.\d)?|unsplash)\b/i
  * parser. */
 const KNOWN_NON_PASS = new Set(['HOLD']);
 
-/** Strip fenced code blocks before looking for a verdict — a verdict sitting
- * inside a ```…``` documentation example is not a verdict. */
+/* A verdict line, anchored to the start of a (possibly indented) line, so
+ * indentation can be inspected separately from the verdict text itself.
+ * Captures: [1] leading whitespace, [2] whatever follows "**판정:" up to the
+ * closing "**" or end of line. */
+const VERDICT_LINE = /^([ \t]*)\*\*판정:\s*(.*?)(?:\*\*|$)/m;
+
+/** Strip fenced code blocks — ``` or ~~~ — before looking for a verdict. A
+ * verdict inside a documentation example is not a verdict, in either fence
+ * style.
+ *
+ * Two passes:
+ *  1. Balanced pairs: opener and closer must be the same fence character
+ *     repeated the same number of times (3+), matched non-greedily so
+ *     adjacent blocks don't merge into one.
+ *  2. An unclosed opener left over after pass 1 is still a fence per
+ *     CommonMark — it implicitly runs to the end of the document, there is
+ *     no such thing as "half a fence". Leaving it unstripped would let a
+ *     documentation example that forgot its closing marker read as plain
+ *     text, and any verdict-shaped example inside it — or any real verdict
+ *     that happens to sit below it — would be reachable again. Stripping to
+ *     EOF is also the fail-closed direction if the missing marker really
+ *     was authoring damage rather than an intentional block: better to lose
+ *     a real verdict to "not found" than to trust text that a broken fence
+ *     couldn't confirm was prose. */
 function stripCodeFences(md) {
-  return md.replace(/```[\s\S]*?```/g, '');
+  let out = md.replace(/(`{3,}|~{3,})[\s\S]*?\1/g, '');
+  out = out.replace(/(`{3,}|~{3,})[\s\S]*$/, '');
+  return out;
 }
 
 /** Human-readable label for whatever `rights` turned out to be, when it
@@ -57,7 +92,8 @@ function describeNotArray(value) {
 export async function decideGate({ qaReportPath, rights }) {
   const reasons = [];
 
-  let verdictText = null; // trimmed text captured after "**판정:", null = not found at all
+  let verdictText = null; // trimmed text of an unambiguous verdict, or null if none found
+  let ambiguousIndent = null; // trimmed text of a verdict we found but can't trust (see below)
   let readError = false;
   try {
     const md = await readFile(qaReportPath, 'utf8');
@@ -67,15 +103,35 @@ export async function decideGate({ qaReportPath, rights }) {
     // line — not [A-Z]+, which silently skips any verdict that isn't a bare
     // ASCII-uppercase run (Korean prose, "PASS(조건부)", …) and lets an
     // older round's PASS further down the document get adopted instead.
-    const m = clean.match(/\*\*판정:\s*(.*?)(?:\*\*|$)/m);
-    verdictText = m ? m[1].trim() : null;
+    const m = clean.match(VERDICT_LINE);
+    if (m) {
+      const [, indent, text] = m;
+      // A line indented 4+ spaces (or a tab) is, per CommonMark, an indented
+      // code block — *if* it follows a blank line and isn't a list-item
+      // continuation. Telling those apart from here would need a real
+      // Markdown parser. Rather than risk either failure mode — silently
+      // trusting a documentation example, or silently discarding a verdict
+      // a report author indented on purpose for visual grouping — treat it
+      // as neither: it's not a verdict we can accept, and we don't keep
+      // searching past it for another one either.
+      if (indent.includes('\t') || indent.length >= 4) {
+        ambiguousIndent = text.trim();
+      } else {
+        verdictText = text.trim();
+      }
+    }
   } catch {
     readError = true;
     reasons.push(`QA — 리포트를 읽을 수 없다 (경로: ${qaReportPath ?? '(지정되지 않음)'})`);
   }
 
   if (!readError) {
-    if (verdictText === null) {
+    if (ambiguousIndent !== null) {
+      const shown = ambiguousIndent === '' ? '(비어 있음)' : ambiguousIndent;
+      reasons.push(
+        `QA — 판정 줄이 4칸 이상 들여쓰기돼 있어 코드블록인지 실제 판정인지 구분할 수 없다: "${shown}" (fail-closed)`,
+      );
+    } else if (verdictText === null) {
       reasons.push('QA — 판정 줄을 찾지 못했다 (fail-closed)');
     } else if (verdictText === 'PASS') {
       // clearance positively proven — no reason
