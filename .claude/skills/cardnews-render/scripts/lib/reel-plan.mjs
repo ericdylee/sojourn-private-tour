@@ -13,7 +13,7 @@ const MAX_MS = 4500;
  * headline, which is tight on a vertical screen. Which card to drop is an
  * editorial call made in step 1 and approved by a human. */
 const MAX_SCENES = 5;
-const MIN_SCENES = 2;
+const MIN_SCENES = 3;
 
 const REQUIRED = ['n', 'role', 'headline', 'photo', 'crop'];
 
@@ -45,6 +45,13 @@ export async function loadReelPlan(path) {
     for (const key of REQUIRED) {
       if (s[key] === undefined || s[key] === null || s[key] === '') {
         issues.push(`scene ${s.n ?? '?'}: 필수 필드 "${key}"가 없다`);
+      }
+    }
+    if (s.duration_ms !== undefined && s.duration_ms !== null) {
+      const isValid = typeof s.duration_ms === 'number' && Number.isFinite(s.duration_ms) && s.duration_ms > 0;
+      if (!isValid) {
+        issues.push(`scene ${s.n ?? '?'}: duration_ms는 양수여야 하는데 ${JSON.stringify(s.duration_ms)}이다`);
+        s.duration_ms = undefined;
       }
     }
     if (s.duration_ms === undefined || s.duration_ms === null) {

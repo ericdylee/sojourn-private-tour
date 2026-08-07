@@ -25,6 +25,7 @@ test('duration_ms를 사람이 덮어쓸 수 있다', async () => {
     scenes: [
       { n: 1, role: 'hook', headline: 'A village that climbs', support: '', photo: 'a.jpg', crop: '50% 50%', duration_ms: 9999 },
       { n: 2, role: 'cta', headline: 'Two words', support: '', photo: 'b.jpg', crop: '50% 50%', duration_ms: null },
+      { n: 3, role: 'body', headline: 'Three more words', support: '', photo: 'c.jpg', crop: '50% 50%', duration_ms: null },
     ],
   }));
   const { plan, issues } = await loadReelPlan(p);
@@ -56,4 +57,52 @@ test('씬이 6개 이상이면 issue를 낸다', async () => {
   }));
   const { issues } = await loadReelPlan(p);
   assert.ok(issues.some((i) => /4~5/.test(i)), `씬 수 상한을 잡아야 한다 — ${JSON.stringify(issues)}`);
+});
+
+test('duration_ms가 0이면 issue를 낸다', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'plan-'));
+  const p = join(dir, 'plan.json');
+  await writeFile(p, JSON.stringify({
+    campaign_id: 'x', fps: 30,
+    scenes: [
+      { n: 1, role: 'hook', headline: 'Hi', support: '', photo: 'a.jpg', crop: '50% 50%', duration_ms: 0 },
+      { n: 2, role: 'body', headline: 'Two words', support: '', photo: 'b.jpg', crop: '50% 50%', duration_ms: 2000 },
+      { n: 3, role: 'cta', headline: 'Three words ok', support: '', photo: 'c.jpg', crop: '50% 50%', duration_ms: null },
+    ],
+  }));
+  const { plan, issues } = await loadReelPlan(p);
+  assert.ok(issues.some((i) => /duration_ms/.test(i)), `duration_ms 0을 잡아야 한다 — ${JSON.stringify(issues)}`);
+  assert.equal(typeof plan.total_ms, 'number', 'total_ms는 항상 number여야 한다');
+});
+
+test('duration_ms가 문자열이면 issue를 낸다', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'plan-'));
+  const p = join(dir, 'plan.json');
+  await writeFile(p, JSON.stringify({
+    campaign_id: 'x', fps: 30,
+    scenes: [
+      { n: 1, role: 'hook', headline: 'Hi', support: '', photo: 'a.jpg', crop: '50% 50%', duration_ms: 'oops' },
+      { n: 2, role: 'body', headline: 'Two words', support: '', photo: 'b.jpg', crop: '50% 50%', duration_ms: 2500 },
+      { n: 3, role: 'cta', headline: 'Three words ok', support: '', photo: 'c.jpg', crop: '50% 50%', duration_ms: null },
+    ],
+  }));
+  const { plan, issues } = await loadReelPlan(p);
+  assert.ok(issues.some((i) => /duration_ms/.test(i)), `duration_ms 문자열을 잡아야 한다 — ${JSON.stringify(issues)}`);
+  assert.equal(typeof plan.total_ms, 'number', 'total_ms는 항상 number여야 한다');
+});
+
+test('duration_ms가 음수면 issue를 낸다', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'plan-'));
+  const p = join(dir, 'plan.json');
+  await writeFile(p, JSON.stringify({
+    campaign_id: 'x', fps: 30,
+    scenes: [
+      { n: 1, role: 'hook', headline: 'Hi', support: '', photo: 'a.jpg', crop: '50% 50%', duration_ms: -100 },
+      { n: 2, role: 'body', headline: 'Two words', support: '', photo: 'b.jpg', crop: '50% 50%', duration_ms: 2500 },
+      { n: 3, role: 'cta', headline: 'Three words ok', support: '', photo: 'c.jpg', crop: '50% 50%', duration_ms: null },
+    ],
+  }));
+  const { plan, issues } = await loadReelPlan(p);
+  assert.ok(issues.some((i) => /duration_ms/.test(i)), `음수 duration_ms를 잡아야 한다 — ${JSON.stringify(issues)}`);
+  assert.equal(typeof plan.total_ms, 'number', 'total_ms는 항상 number여야 한다');
 });
