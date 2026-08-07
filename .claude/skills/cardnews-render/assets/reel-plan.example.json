@@ -1,0 +1,28 @@
+{
+  "_readme": [
+    "릴스 씬 원장. 1단계(씬 구성)가 이 파일을 만들고 사람이 승인한다.",
+    "카피는 여기서 새로 쓰지 않는다 — 02_carousel.json이 이미 팩트 출처까지",
+    "달아 검증한 문장을 옮긴다. 예외는 CTA 씬 하나뿐이다(카드 06이 QA B1으로",
+    "교체됐다).",
+    "crop은 1:1 사진을 9:16으로 옮길 때 어느 부분을 살릴지다. 좌우가 잘리므로",
+    "사람이 2단계에서 눈으로 확인한다.",
+    "duration_ms를 null로 두면 단어 수에서 계산한다. 숫자를 적으면 그 값을 쓴다."
+  ],
+  "campaign_id": "gamcheon-culture-village",
+  "source": "_workspace/02_carousel.json",
+  "fps": 30,
+  "scenes": [
+    {
+      "n": 1,
+      "from_card": 1,
+      "role": "hook",
+      "headline": "A village that <span class=\"accent\">climbs</span>",
+      "support": "Gamcheon Culture Village, Busan",
+      "photo": "place/gamcheon-sky-vista.jpg",
+      "crop": "50% 45%",
+      "motion": "ken-burns",
+      "transition": "cut",
+      "duration_ms": null
+    }
+  ]
+}
