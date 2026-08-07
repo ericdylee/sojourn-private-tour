@@ -41,7 +41,34 @@
 }
 
 /* Black scrim buys contrast for the type without a soft shadow, which the
- * brand system forbids. Same device as .lay-simple on the cards. */
+ * brand system forbids. Same device as .lay-simple on the cards.
+ *
+ * The ramp is set for the ORANGE accent, not for white type — see the comment
+ * above .photo-bg.scrim-soft in brand.css (the "top ramp holds to 35%" block).
+ * The card side already paid for this lesson: white survives a thin scrim
+ * because its luminance is 1.0, the orange accent sits at 0.35 and needs the
+ * ground under it pushed genuinely dark, and card 02's second headline line
+ * measured 1.18:1 under a ramp that had been eyeballed on white.
+ *
+ * The reel repeats the situation in a harsher form. Instagram's safe areas push
+ * the type DOWN, so the accent lands in the mid-band — the thinnest part of a
+ * ramp that a card would have put its type at the top of. Measured with the
+ * first (white-calibrated) ramp of 0.15 @35% / 0.25 @60%: four of five scenes
+ * failed CONTRAST — "grant title" 1.01:1, "front doors" 1.26:1, "uphill"
+ * 1.00:1, "top" 1.00:1 — and all five .photo-credit lines warned at
+ * 1.90-2.36:1. The credit is the element that discharges the CC BY attribution
+ * obligation; unreadable, it does not discharge it.
+ *
+ * Cropping cannot fix this: a Gamcheon frame is bright pastel houses wherever
+ * you cut it. Four ramps were measured and this is the WEAKEST one that reaches
+ * zero issues and zero notes (0.45/0.85 still left three notes; 0.72 and 0.80
+ * pass but erase more of the photograph). The top 30% is untouched, so the
+ * picture is still a picture where nobody is reading.
+ *
+ * Editorial cost, recorded rather than hidden: scene 01's headline promises a
+ * "painted hillside" and the stronger scrim mutes exactly that colour. Legible
+ * orange won over saturated photograph. Worth re-measuring once own photography
+ * (darker skies, backlit frames) replaces the borrowed stock. */
 .reel-scene .scrim {
   position: absolute;
   inset: 0;
@@ -49,9 +76,9 @@
   background: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0.55) 0%,
-    rgba(0, 0, 0, 0.15) 35%,
-    rgba(0, 0, 0, 0.25) 60%,
-    rgba(0, 0, 0, 0.75) 100%
+    rgba(0, 0, 0, 0.12) 30%,
+    rgba(0, 0, 0, 0.62) 56%,
+    rgba(0, 0, 0, 0.88) 100%
   );
 }
 
@@ -80,6 +107,21 @@
   letter-spacing: -0.02em;
   color: #fff;
   margin: 0 0 28px;
+  /* text-transform: none is a RESET, not a default. brand.css:109-111 sets
+   * .display { text-transform: uppercase } for the Anton-era card display, and
+   * this rule re-declares the whole face — family, weight, size, line-height,
+   * letter-spacing, colour — so leaving one property out lets that one leak in.
+   *
+   * No check catches the leak, which is why it is spelled out here. Uppercase
+   * is a valid layout: checkSafeArea and checkWordCount both return zero issues
+   * on it, so it does not block, it just ships wrong. Two things break. The v4
+   * SIMPLE cards are sentence case, and the whole premise of the reel is that
+   * it re-typesets the SAME sentences — uppercase is a rewrite, not a move. And
+   * caps widen a line by ~23%: measured at 96px, three of five headlines folded
+   * to three lines and scene 02 split its accent phrase into "was a grant /
+   * title". With the reset, all five hold two lines at a 916px maximum inside
+   * the 936px box, so the size never needed to change. */
+  text-transform: none;
   max-width: 936px;
 }
 .reel-scene .display .accent { color: var(--orange); }
@@ -93,6 +135,13 @@
   margin: 0;
   max-width: 880px;
 }
+/* Same class of defect as the text-transform reset above, from the other
+ * direction: <strong>'s UA default is `bolder`, which against .sub's 600
+ * computes to 900. Montserrat has no 900 face, so the CTA URL — the one string
+ * a viewer has to copy down — silently dropped to the next candidate in
+ * --voice and rendered in Inter 900 while everything around it stayed
+ * Montserrat. Pin it instead of leaving each scene to remember. */
+.reel-scene .sub strong { font-weight: 700; }
 
 /* Credit sits ABOVE the bottom 400px band. On the cards it lives inside the
  * crop guard (QA m2) — the one element that satisfies the licence obligation

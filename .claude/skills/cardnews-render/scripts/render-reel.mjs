@@ -82,7 +82,13 @@ if (plan.total_ms < MIN_TOTAL_MS || plan.total_ms > MAX_TOTAL_MS) {
 
 // --- gate ------------------------------------------------------------------
 const { photoIndex, manifestPath } = await loadPhotoIndex();
-const rights = plan.scenes.map((s) => photoIndex.get(s.photo)?.rights ?? null);
+// Scene index and photo key ride along so an unresolvable licence names the
+// scene to go fix. Only the `rights` field is matched by the gate.
+const rights = plan.scenes.map((s, i) => ({
+  scene: `scene ${String(i + 1).padStart(2, '0')}`,
+  photo: s.photo ?? null,
+  rights: photoIndex.get(s.photo)?.rights ?? null,
+}));
 const gate = await decideGate({ qaReportPath: resolve('output/qa_report.md'), rights });
 
 if (gate.internal) {
@@ -91,6 +97,19 @@ if (gate.internal) {
 } else {
   console.log('GATE: 발행 가능');
 }
+
+// The other filename must not linger: a stale reel.mp4 next to a fresh
+// reel_INTERNAL.mp4 is exactly the upload accident this gate exists to prevent.
+//
+// It runs HERE, the moment the verdict is known, and not beside the encode at
+// the end of the file. Down there it sat AFTER the issues gate, so the failure
+// door walked straight past it — a run whose checks fail prints INTERNAL,
+// prints "mp4를 만들지 않는다", exits 1, and leaves last week's publishable
+// reel.mp4 sitting in output/reels/ as the newest thing a human sees. Reached
+// through the failure path, that is the same accident, and the failure path is
+// the likelier one. The verdict alone decides which name is illegitimate; a
+// successful encode is not a precondition for deleting it.
+await rm(join(outDir, gate.internal ? 'reel.mp4' : 'reel_INTERNAL.mp4'), { force: true });
 
 // --- browser ---------------------------------------------------------------
 const browser = await chromium.launch();
@@ -117,6 +136,12 @@ for (const [name, page] of [['capture', capturePage], ['check', checkPage]]) {
 
 const captureScenes = await capturePage.$$('section.reel-scene');
 const checkScenes = await checkPage.$$('section.reel-scene');
+
+// Read once, folded into every scene's cache key. The head is shared, so a
+// <style> or <link> added to it changes all five scenes while none of their
+// own outerHTML moves — the cache-hit-on-stale-frames case reel-cache.mjs
+// exists to prevent.
+const headHtml = await capturePage.evaluate(() => document.head.innerHTML);
 
 if (captureScenes.length !== plan.scenes.length) {
   issues.push(
@@ -166,15 +191,29 @@ for (const [i, spec] of plan.scenes.entries()) {
   // Cache.
   const sceneHtml = await capEl.evaluate((el) => el.outerHTML);
   const photoPath = spec.photo ? resolve('assets/photos', spec.photo) : null;
-  const key = await sceneKey({
-    sceneHtml,
-    cssPaths: [join(assetsDir, 'reel.css'), join(assetsDir, 'brand.css')],
-    fontDir: join(assetsDir, 'fonts'),
-    photoPath,
-    durationMs: spec.duration_ms,
-    fps,
-    internal: gate.internal,
-  });
+  // sceneKey reads every file it hashes, so a plan pointing at a photo that is
+  // not on disk throws ENOENT from inside it. Unhandled, that ends the process
+  // with a stack trace — and the loop's own ISSUES list, which checkPhotos has
+  // by then already filled with the friendly version of the same fact, is only
+  // printed after the loop, so the crash gets there first. The verdict was
+  // never in doubt (exit != 0, no mp4); the point is that the operator should
+  // read a sentence, not a trace.
+  let key;
+  try {
+    key = await sceneKey({
+      sceneHtml,
+      headHtml,
+      cssPaths: [join(assetsDir, 'reel.css'), join(assetsDir, 'brand.css')],
+      fontDir: join(assetsDir, 'fonts'),
+      photoPath,
+      durationMs: spec.duration_ms,
+      fps,
+      internal: gate.internal,
+    });
+  } catch (e) {
+    issues.push(`${label}: CACHE — 씬 캐시 키를 만들 수 없다 — ${e.message}`);
+    continue;
+  }
   const cached = join(cacheDir, `${key}.mp4`);
 
   let hit = true;
@@ -246,10 +285,6 @@ await run('ffmpeg', [
 ]);
 
 await rm(silent, { force: true });
-
-// The other name must not linger: a stale reel.mp4 next to a fresh
-// reel_INTERNAL.mp4 is exactly the upload accident this gate exists to prevent.
-await rm(join(outDir, gate.internal ? 'reel.mp4' : 'reel_INTERNAL.mp4'), { force: true });
 
 console.log(`\n${plan.scenes.length} scene(s), ${(plan.total_ms / 1000).toFixed(1)}s -> ${finalPath}`);
 

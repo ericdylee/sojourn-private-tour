@@ -47,10 +47,20 @@ async function digestFile(path) {
  * every cached scene looking current while being stale. A cache that lies is
  * worse than no cache, because the wrong frames ship silently.
  */
-export async function sceneKey({ sceneHtml, cssPaths = [], fontDir, photoPath, durationMs, fps, internal }) {
+export async function sceneKey({ sceneHtml, headHtml = '', cssPaths = [], fontDir, photoPath, durationMs, fps, internal }) {
   const h = createHash('sha256');
   writeField(h, RENDERER_VERSION);
   writeField(h, sceneHtml);
+  /* The document <head> is shared by every scene, so it is the one input a
+   * per-scene hash is most likely to forget — and forgetting it is the failure
+   * this module exists to prevent. A <style> block or a <link> added to the
+   * head restyles all five scenes while every scene's own outerHTML is
+   * byte-identical, so without this field the whole reel reports cache hits and
+   * ships the frames rendered before the edit. Shared input, shared
+   * invalidation: changing the head invalidates every scene, which is exactly
+   * what the change did to the pixels. */
+  writeField(h, 'head:');
+  writeField(h, headHtml ?? '');
   writeField(h, JSON.stringify({ durationMs, fps, internal: Boolean(internal) }));
 
   // cssPaths is hashed in the order given — not sorted. Order is

@@ -36,7 +36,29 @@ export async function loadReelPlan(path) {
     return { plan: null, issues: [`reel plan을 읽을 수 없다: ${path} — ${e.message}`] };
   }
 
-  const scenes = plan.scenes ?? [];
+  /* A plan that is not an object at all — `null`, a number, a bare string, a
+   * top-level array — cannot be normalised into one. Returning plan:null makes
+   * the caller print ISSUES and exit; reading `.scenes` off it would throw a
+   * TypeError instead, past the point where the tidy output is produced. */
+  if (plan === null || typeof plan !== 'object' || Array.isArray(plan)) {
+    return {
+      plan: null,
+      issues: [`reel plan이 객체가 아니다: ${path} — ${Array.isArray(plan) ? '배열' : typeof plan}`],
+    };
+  }
+
+  /* Normalised back ONTO the plan, not kept as a local. A local `scenes` left
+   * `plan.scenes` undefined whenever the JSON omitted the key, so every caller
+   * that reached for `plan.scenes` — render-reel.mjs does, immediately — died
+   * with a TypeError before the "씬이 0개다" issue this function had already
+   * recorded ever reached the screen. The issue was right; nobody saw it. */
+  const declared = plan.scenes;
+  const scenes = Array.isArray(declared) ? declared : [];
+  if (declared !== undefined && declared !== null && !Array.isArray(declared)) {
+    issues.push(`scenes가 배열이 아니다 — 받은 값: ${typeof declared}`);
+  }
+  plan.scenes = scenes;
+
   if (scenes.length > MAX_SCENES || scenes.length < MIN_SCENES) {
     issues.push(`씬이 ${scenes.length}개다 — 4~5개로 맞춰라 (허용 ${MIN_SCENES}~${MAX_SCENES})`);
   }

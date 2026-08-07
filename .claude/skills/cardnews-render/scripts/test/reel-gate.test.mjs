@@ -253,3 +253,56 @@ test('CLEAR 단독 검증 — BLOCKING 체크 순서와 무관하게 SA/NC/ND �
     assert.equal(isClearRights(s), false, s);
   }
 });
+
+// --- 사유가 어느 씬인지 말한다 ------------------------------------------
+//
+// 매니페스트에 없는 사진은 rights가 null로 들어오고, 사유가
+// 'LICENCE — ""의 권리를 판정할 수 없다 (fail-closed)'였다. 판정은 맞지만
+// 다섯 씬 중 어느 것을 고쳐야 하는지 운영자가 알 수 없다.
+
+test('rights 항목이 {scene, photo, rights}면 사유가 씬과 사진 키를 말한다', async () => {
+  const p = await qaFile('**판정: PASS**\n');
+  const g = await decideGate({
+    qaReportPath: p,
+    rights: [
+      { scene: 'scene 01', photo: 'place/ok.jpg', rights: 'licensed:wikimedia/CC BY 4.0 — S h y numis' },
+      { scene: 'scene 05', photo: 'place/tmp-unregistered.jpg', rights: null },
+    ],
+  });
+  assert.equal(g.internal, true);
+  const licence = g.reasons.filter((r) => r.includes('LICENCE'));
+  assert.equal(licence.length, 1, g.reasons.join(' / '));
+  assert.ok(licence[0].includes('scene 05'), licence[0]);
+  assert.ok(licence[0].includes('place/tmp-unregistered.jpg'), licence[0]);
+});
+
+test('BLOCKING 사유에도 씬이 붙는다', async () => {
+  const p = await qaFile('**판정: PASS**\n');
+  const target = 'licensed:wikimedia/CC BY-SA 2.0 — bryan';
+  const g = await decideGate({
+    qaReportPath: p,
+    rights: [{ scene: 'scene 03', photo: 'place/x.jpg', rights: target }],
+  });
+  assert.equal(g.internal, true);
+  assert.ok(
+    g.reasons.some((r) => r.includes('scene 03') && r.includes(target) && r.includes('재배포에 조건이 붙는다')),
+    g.reasons.join(' / '),
+  );
+});
+
+test('씬 라벨은 표시용이다 — 파일명에 BY-SA가 들어 있어도 판정을 바꾸지 않는다', async () => {
+  // 사진 키를 매칭 대상에 섞으면 'cc-by-sa-poster.jpg' 같은 파일명이 깨끗한
+  // CC0 사진을 차단한다. rights 필드만 정규식에 닿아야 한다.
+  const p = await qaFile('**판정: PASS**\n');
+  const g = await decideGate({
+    qaReportPath: p,
+    rights: [{ scene: 'scene 01 BY-NC', photo: 'place/cc-by-sa-poster.jpg', rights: 'own' }],
+  });
+  assert.equal(g.internal, false, g.reasons.join(' / '));
+});
+
+test('맨 문자열 rights 항목은 그대로 동작한다 (기존 계약 보존)', async () => {
+  const p = await qaFile('**판정: PASS**\n');
+  const g = await decideGate({ qaReportPath: p, rights: CLEAN });
+  assert.equal(g.internal, false, g.reasons.join(' / '));
+});

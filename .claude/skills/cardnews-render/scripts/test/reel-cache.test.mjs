@@ -19,6 +19,7 @@ async function scaffold() {
 
 const base = (s) => ({
   sceneHtml: '<section>one</section>',
+  headHtml: '<title>t</title>',
   cssPaths: [s.css],
   fontDir: s.fonts,
   photoPath: s.photo,
@@ -82,6 +83,34 @@ test('fps가 바뀌면 키가 바뀐다', async () => {
   const a = await sceneKey(base(s));
   const b = await sceneKey({ ...base(s), fps: 24 });
   assert.notEqual(a, b, 'fps가 해시에서 빠지면 다른 프레임률로 렌더한 씬이 낡은 캐시를 재사용한다');
+});
+
+test('<head>가 바뀌면 키가 바뀐다 — 씬 outerHTML은 그대로여도', async () => {
+  // 실제로 열려 있던 구멍: 04_reel.html의 <head>에 <style>을 하나 넣으면 다섯
+  // 씬의 픽셀이 전부 바뀌는데, 씬의 outerHTML은 한 바이트도 안 바뀌므로 다섯
+  // 씬 전부 cache hit이 뜬다. 캐시가 거짓말하는 바로 그 경우다.
+  const s = await scaffold();
+  const a = await sceneKey(base(s));
+  const b = await sceneKey({ ...base(s), headHtml: '<title>t</title><style>.display{color:red}</style>' });
+  assert.notEqual(a, b, '<head>를 고쳤는데 같은 키가 나오면 낡은 프레임이 조용히 살아남는다');
+});
+
+test('<head>는 씬 공용 입력이다 — 바뀌면 서로 다른 씬의 키가 모두 바뀐다', async () => {
+  const s = await scaffold();
+  const scenes = ['<section>one</section>', '<section>two</section>'];
+  const before = await Promise.all(scenes.map((sceneHtml) => sceneKey({ ...base(s), sceneHtml })));
+  const after = await Promise.all(
+    scenes.map((sceneHtml) => sceneKey({ ...base(s), sceneHtml, headHtml: '<title>t</title><style>b{}</style>' })),
+  );
+  for (const [i, key] of before.entries()) {
+    assert.notEqual(key, after[i], `씬 ${i + 1}의 키가 head 변경에 반응하지 않았다`);
+  }
+});
+
+test('headHtml을 안 넘겨도 던지지 않는다 — 기본값은 빈 문자열이다', async () => {
+  const s = await scaffold();
+  const { headHtml, ...withoutHead } = base(s);
+  assert.equal(await sceneKey(withoutHead), await sceneKey({ ...withoutHead, headHtml: '' }));
 });
 
 test('css 경로 목록은 재조합될 수 없다 — 두 항목과, 그 둘을 이어붙인 한 항목이 같은 키를 내면 안 된다', async () => {

@@ -17,7 +17,23 @@ const REQUIRED = [
 export async function assertFontsLoaded(page) {
   await page.evaluate(() => document.fonts.ready);
   return page.evaluate(
-    (specs) => specs.filter((s) => !document.fonts.check(s)),
+    async (specs) => {
+      /* load() BEFORE check(). @font-face is lazy: a face is only fetched when
+       * some element on the page actually uses it. check() alone therefore
+       * asks "does this page use all six brand weights?", not "are the six
+       * brand weights available?" — and the first reel, which has no Inter-900
+       * element, failed for no real reason.
+       *
+       * This does not blunt the check. load() resolves against the @font-face
+       * rules in the stylesheet, not against a wish: if the woff2 is missing or
+       * corrupt the FontFace ends in status "error" and check() still returns
+       * false. Verified by moving assets/fonts/*.woff2 aside — all six specs
+       * still came back missing (task-10-report.md §Fix 4). What disappears is
+       * only the accidental extra condition "this page must already be setting
+       * that weight", which was never what this module is for. */
+      await Promise.all(specs.map((s) => document.fonts.load(s).catch(() => {})));
+      return specs.filter((s) => !document.fonts.check(s));
+    },
     REQUIRED,
   );
 }

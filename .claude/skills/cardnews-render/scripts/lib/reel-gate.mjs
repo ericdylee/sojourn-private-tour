@@ -79,6 +79,26 @@ function stripCodeFences(md) {
   return out;
 }
 
+/**
+ * A rights entry is either a bare provenance string or `{rights, scene, photo}`.
+ *
+ * The descriptor form exists because the bare string produced a correct verdict
+ * with a useless reason: a photo missing from the manifest arrives as `null`,
+ * and the reason read `LICENCE — ""의 권리를 판정할 수 없다 (fail-closed)`. True,
+ * and no way to tell which of five scenes to go fix. Only `rights` is ever
+ * matched against BLOCKING/CLEAR — scene and photo are display-only, so a
+ * filename that happens to contain "BY-SA" can never change a verdict.
+ */
+function normaliseRightsEntry(entry) {
+  if (entry !== null && typeof entry === 'object' && !Array.isArray(entry)) {
+    const scene = entry.scene ?? null;
+    const photo = entry.photo ?? null;
+    const where = [scene, photo ? `"${photo}"` : null].filter(Boolean).join(' ');
+    return { text: entry.rights ?? '', where };
+  }
+  return { text: entry ?? '', where: '' };
+}
+
 /** Human-readable label for whatever `rights` turned out to be, when it
  * isn't the array the interface promises. */
 function describeNotArray(value) {
@@ -148,11 +168,12 @@ export async function decideGate({ qaReportPath, rights }) {
     reasons.push(`LICENCE — rights가 배열이 아니다 — 받은 값: ${describeNotArray(list)} (fail-closed)`);
   } else {
     for (const r of list) {
-      const s = r ?? '';
+      const { text: s, where } = normaliseRightsEntry(r);
+      const at = where ? `${where}: ` : '';
       if (BLOCKING.test(s)) {
-        reasons.push(`LICENCE — "${s}"는 재배포에 조건이 붙는다`);
+        reasons.push(`LICENCE — ${at}"${s}"는 재배포에 조건이 붙는다`);
       } else if (!CLEAR.test(s)) {
-        reasons.push(`LICENCE — "${s}"의 권리를 판정할 수 없다 (fail-closed)`);
+        reasons.push(`LICENCE — ${at}"${s}"의 권리를 판정할 수 없다 (fail-closed)`);
       }
     }
   }
