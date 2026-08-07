@@ -2,7 +2,10 @@
    1080 x 1080 card system. Tokens are owned by sojourn-brand-system/SKILL.md.
    Do not redefine colors or type sizes inline; use the classes below. */
 
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;700;800;900&family=Montserrat:wght@600;700;800&display=swap');
+/* Fonts are vendored, not fetched. A network failure used to render every card
+ * in a fallback face while document.fonts.ready still resolved — the renderer
+ * reported success on a wrong result. See assets/fonts/fetch.sh. */
+@import url('./fonts/fonts.css');
 
 :root {
   --blue: #1C3FE8;
