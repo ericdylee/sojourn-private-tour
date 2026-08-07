@@ -5,9 +5,26 @@ import { pathToFileURL } from 'node:url';
 import { resolve, join } from 'node:path';
 import { mkdtemp, stat, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { seekTo, openEncoder, captureScene, FPS } from '../lib/reel-capture.mjs';
 
+const execFileAsync = promisify(execFile);
 const FIXTURE = resolve(import.meta.dirname, 'fixtures/skeleton.html');
+
+// Decodes the actual video stream with ffprobe rather than trusting our own
+// frame counter or a byte-size floor — a corrupt file that happens to clear
+// 1000 bytes would pass a size check silently but fail this.
+async function probeVideo(path) {
+  const { stdout } = await execFileAsync('ffprobe', [
+    '-v', 'error',
+    '-select_streams', 'v:0',
+    '-show_entries', 'stream=codec_name,width,height,r_frame_rate',
+    '-of', 'json',
+    path,
+  ]);
+  return JSON.parse(stdout).streams[0];
+}
 
 async function openScene() {
   const browser = await chromium.launch();
@@ -74,5 +91,47 @@ test('captureScene이 mp4를 만든다', async () => {
   assert.equal(n, 30, '1초 30fps면 프레임 30장');
   const s = await stat(out);
   assert.ok(s.size > 1000, `mp4가 비었다 — ${s.size} bytes`);
+
+  const probe = await probeVideo(out);
+  assert.equal(probe.codec_name, 'h264', `코덱이 h264가 아니다 — 실제 ${probe.codec_name}`);
+  assert.equal(probe.width, 1080, `너비가 다르다 — 실제 ${probe.width}`);
+  assert.equal(probe.height, 1920, `높이가 다르다 — 실제 ${probe.height}`);
+  assert.equal(probe.r_frame_rate, '30/1', `프레임레이트가 다르다 — 실제 ${probe.r_frame_rate}`);
+
+  await rm(dir, { recursive: true, force: true });
+});
+
+test('ffmpeg가 중간에 죽으면 write()가 멈추지 않고 reject한다', { timeout: 15_000 }, async () => {
+  // Reproduces the crash/hang by hand before this test existed: a burst of
+  // large writes fired without awaiting each one forces genuine backpressure
+  // (many concurrent drain waits) before ffmpeg has finished dying, so at
+  // least one write() is caught inside its drain wait at the moment of
+  // death — the exact path that used to hang forever (or, with no listener
+  // on stdin's own 'error', crash the process outright on EPIPE). A single
+  // small write reliably resolves before ffmpeg dies, because ffmpeg reads
+  // eagerly; only a payload large enough to outrun that eager read exposes
+  // the bug, which is why this uses padded ~3MB frames instead of the tiny
+  // fixture screenshots the other tests use.
+  const { browser, page, el } = await openScene();
+  const real = await el.screenshot();
+  await browser.close();
+  const frame = Buffer.concat([real, Buffer.alloc(3 * 1024 * 1024 - real.length, 0)]);
+
+  const dir = await mkdtemp(join(tmpdir(), 'reel-dead-'));
+  // The parent directory does not exist, so ffmpeg starts, detects the
+  // input stream from the first valid PNG, then dies trying to open the
+  // output and exits non-zero.
+  const out = join(dir, 'missing-subdir', 'scene.mp4');
+  const enc = openEncoder(out, { fps: FPS, width: 1080, height: 1920 });
+
+  const writes = [];
+  for (let i = 0; i < 20; i += 1) writes.push(enc.write(frame));
+
+  await assert.rejects(
+    Promise.all(writes),
+    /ffmpeg exited/,
+    'write()가 죽은 ffmpeg를 기다리며 멈췄다 — reject 대신 hang/crash',
+  );
+
   await rm(dir, { recursive: true, force: true });
 });
