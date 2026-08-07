@@ -43,3 +43,11 @@ test('헤드라인 7단어를 잡는다', async () => {
   assert.ok(issues.length > 0, '7단어 헤드라인을 잡아야 한다');
   assert.match(issues[0], /WORDS/);
 });
+
+test('헤드라인이 아예 없는 씬을 잡는다', async () => {
+  const { browser, el } = await scene('scene-no-headline.html');
+  const issues = await checkWordCount(el, { label: 'scene 01' });
+  await browser.close();
+  assert.ok(issues.length > 0, '.display가 없으면 잡아야 한다');
+  assert.match(issues[0], /HEADLINE/);
+});

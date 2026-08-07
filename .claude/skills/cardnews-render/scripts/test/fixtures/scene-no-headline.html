@@ -1,0 +1,14 @@
+<!doctype html>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../../assets/reel.css">
+<style> body { margin: 0; } </style>
+<!-- Deliberately broken: no .display at all. A photo-only frame with just a
+     sub line would otherwise pass safe-area (nothing to violate), word count
+     (0 <= 6), the photo check (about images, not text) and contrast (no ink
+     to measure) — silently shipping a scene with no headline. -->
+<section class="reel-scene" style="--crop: 50% 50%">
+  <div class="scrim"></div>
+  <div class="type">
+    <p class="sub">Book a private day</p>
+  </div>
+</section>

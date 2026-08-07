@@ -2,20 +2,28 @@
 <meta charset="utf-8">
 <link rel="stylesheet" href="../../../assets/reel.css">
 <style>
-  body { margin: 0; }
-  /* reel.css makes .type a positioning context (position: relative, for its
-   * z-index). Left alone, .sub's "bottom" below would resolve against .type's
-   * edge, not the frame's, and never enter the unsafe band. Neutralize it so
-   * .sub's containing block is .reel-scene itself, matching what "380px from
-   * the bottom" means below. */
-  .reel-scene .type { position: static; }
-  /* Deliberately broken: this sits inside the bottom 400px band. */
-  .reel-scene .sub { position: absolute; left: 72px; bottom: 380px; }
+  body { margin: 0; background: #222; }
+  /* Deliberately broken, and representative of an authoring change that could
+   * really happen: reel.css already positions .photo-credit absolute against
+   * the frame at bottom:420px — 20px above the unsafe line. Retuning that one
+   * number down to 380px (someone pulling the credit closer to the edge) is a
+   * one-line CSS edit that needs no positioning-context override, unlike a
+   * .sub inside .type (.type is position:relative for its own z-index, so a
+   * .sub moved to position:absolute there is measured against .type, not the
+   * frame — that combination is not something any real authoring path
+   * produces, so it was dropped as a source of "broken"). */
+  .reel-scene .photo-credit { bottom: 380px; }
 </style>
-<section class="reel-scene" style="--crop: 50% 50%">
+
+<section class="reel-scene" style="--crop: 50% 45%; --dur: 3000ms">
+  <div class="photo photo-bg m-kenburns">
+    <img src="../../../../../../assets/photos/place/gamcheon-sky-vista.jpg"
+         data-photo="place/gamcheon-sky-vista.jpg" data-slot="place" alt="">
+  </div>
   <div class="scrim"></div>
+  <p class="photo-credit">Photo: VaneTrz20 / Wikimedia · CC0</p>
   <div class="type">
-    <h1 class="display">Two words</h1>
-    <p class="sub">Book a private day</p>
+    <h1 class="display m-type-in">A village that <span class="accent">climbs</span></h1>
+    <p class="sub m-type-in delay-1">Gamcheon Culture Village, Busan</p>
   </div>
 </section>

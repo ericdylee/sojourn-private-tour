@@ -40,6 +40,11 @@ export async function checkSafeArea(el, { label }) {
 export async function checkWordCount(el, { label }) {
   const text = await el.evaluate((node) => node.querySelector('.display')?.textContent ?? '');
   const n = wordCount(text);
+  // A scene with no .display (or an empty one) has no headline at all. None of
+  // the other checks catch this — safe-area finds nothing to violate, the
+  // photo check is about images, contrast finds no ink to measure — so a
+  // silent photo-only frame would otherwise sail through every gate.
+  if (n === 0) return [`${label}: HEADLINE — .display is missing or has no text`];
   if (n <= MAX_HEADLINE_WORDS) return [];
   return [`${label}: WORDS — headline is ${n} words, limit is ${MAX_HEADLINE_WORDS} ("${text.trim()}")`];
 }
