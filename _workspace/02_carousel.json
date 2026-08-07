@@ -2,7 +2,14 @@
   "_readme": [
     "카드뉴스 4단계 절차의 살아 있는 산출물. 1단계가 topic·gate를, 2단계가 cards[].copy와",
     "fact_source·image_intent를, 3단계가 cards[].photo를 채웠다.",
-    "형식과 작성 지침은 .claude/skills/cardnews-render/assets/carousel-plan.example.json 참조."
+    "형식과 작성 지침은 .claude/skills/cardnews-render/assets/carousel-plan.example.json 참조.",
+    "",
+    "2026-08-07 동기화 (QA 4회차 N2). 이 파일이 스테일이었다 — 3단계 사진 기록이 폐기된",
+    "CC BY-SA 2.0 6장을 가리키고 있었고, 카드 03·06 문구가 QA 반려 이전 상태였고,",
+    "publish_gate가 이미 소멸한 SA 사유로 HOLD를 걸고 있었다. 세 수정이 전부 03_cards.html",
+    "에만 들어가 있었다. 이 기록으로 3·4단계를 재실행하면 B1(원장 밖 서비스 약속)과",
+    "B2(SA 사진)가 그대로 되살아난다. 03_cards.html과 assets/photos/manifest.json을 단일",
+    "사실 출처로 삼아 옮겨 적었고, 새 사실은 만들지 않았다."
   ],
   "topic": "Gamcheon Culture Village",
   "campaign_id": "gamcheon-culture-village",
@@ -10,9 +17,10 @@
     "on_route": true,
     "on_route_source": "01_brief.json facts[1] — Busan Highlights 코스 구성",
     "fact_source": "블로그 발행본 content/posts/2026-08-04-gamcheon-culture-village.md",
-    "photos_available": 5,
+    "photos_available": 7,
+    "photos_available_detail": "manifest의 감천 파일 12건 중 비-SA 7건(gamcheon-sky-vista CC0 · gamcheon-valley-hill · gamcheon-terraces · gamcheon-front-doors · gamcheon-stairs-slope · gamcheon-village-wide 이상 CC BY 4.0 · gamcheon-valley-blossom CC BY 2.0). 나머지 5건(gamcheon-hero-src · 44835393715 · 30809164987 · 30809161817 · 31877408798)은 CC BY-SA 2.0이라 상업 카드 배경에서 제외한다",
     "verdict": "PASS",
-    "note": "세 조건 모두 충족. 사진 5장 전부 CC BY-SA 2.0이라 3단계 라이선스 게이트에 걸린다."
+    "note": "세 조건 모두 충족. 2026-08-07 갱신 — 구 기록은 '사진 5장 전부 CC BY-SA 2.0이라 3단계 라이선스 게이트에 걸린다'였다. 커먼즈의 비-SA 풀을 다시 뒤져 6슬롯 전량을 교체했고 그 게이트는 소멸했다."
   },
   "cards": [
     {
@@ -30,10 +38,13 @@
       "fact_source": "장소명. 사실 주장 없음",
       "image_intent": "마을 전체가 사면을 덮은 전경 — 이 장소가 무엇인지 한 장으로",
       "photo": {
-        "key": "place/gamcheon-44835393715.jpg",
+        "key": "place/gamcheon-sky-vista.jpg",
         "slot": "place",
-        "rights": "licensed:wikimedia/CC BY-SA 2.0 — bryan...",
-        "credit_required": true
+        "rights": "licensed:wikimedia/CC0 — VaneTrz20",
+        "credit_required": false,
+        "card_credit": "Photo: VaneTrz20 / Wikimedia Commons · CC0",
+        "crop": "커먼즈 'Gamcheon Culture Village View blue sky.jpg'(4000x2252)에서 1:1 2252px 크롭 후 2160px",
+        "note": "CC0라 표기 의무가 없다. 카드의 크레딧은 예우이며, 그래서 N1(변형 표시)의 대상이 아니다"
       }
     },
     {
@@ -51,11 +62,13 @@
       "fact_source": "블로그 — 2009년 마을미술 공모 당선작 제목이 'Dreaming of Busan's Machu Picchu'",
       "image_intent": "골짜기 건너에서 본 마을 — 통념이 만들어진 바로 그 구도",
       "photo": {
-        "key": "place/gamcheon-hero-src.jpg",
+        "key": "place/gamcheon-valley-hill.jpg",
         "slot": "place",
-        "rights": "licensed:wikimedia/CC BY-SA 2.0 — bryan...",
+        "rights": "licensed:wikimedia/CC BY 4.0 — S h y numis",
         "credit_required": true,
-        "crop": "scale(2.3) translateY(-19%) — 원본 3:2라 정사각 크롭 시 2/3이 하늘"
+        "card_credit": "Photo: S h y numis / Wikimedia Commons · CC BY 4.0 · cropped",
+        "crop": "커먼즈 'Gamcheon Culture Village March 30 2024 3.jpg'(5328x4000)에서 1:1 4000px 크롭 후 2160px",
+        "note": "카드 02 전용. gamcheon-valley-blossom은 벚꽃 띠가 헤드라인 자리에 걸려 오렌지 액센트가 2.06까지 떨어졌다. 이 컷은 상단이 어두운 능선이라 액센트를 버틴다"
       }
     },
     {
@@ -65,18 +78,22 @@
       "copy": {
         "headline": [
           "No house stands",
-          "in front of another"
+          "directly in front"
         ],
         "accent": "No house",
-        "support": "The stepped rows are the whole plan. Every home keeps its light and its view of the water."
+        "support": "The stepped rows are the whole plan. Every home keeps its light and its view of the water.",
+        "changed": "QA 3회차 m1 — 구 헤드라인은 [\"No house stands\", \"in front of another\"]. 자사 발행 문장이 'no house stands DIRECTLY in front of another'인데 한정어를 빼면 계획의 서술이 절대 주장으로 바뀐다. 발행 문구 전문은 ~1045px로 936px 헤드라인 박스를 넘어 3행이 되므로(세트 6장 전부 2행) 'of another'를 서포트 문장으로 넘겼다. 사용자가 'No house is directly / in front of another' 대신 이 안을 골랐다. 변경 후 실측 685px/623px 2행"
       },
       "fact_source": "블로그 — 계단식 배치 규칙(앞집이 뒷집의 빛과 바다 조망을 가리지 않는다)",
-      "image_intent": "마을 안쪽에서 본 지붕들 — 계단식 배치가 눈에 보이는 각도",
+      "image_intent": "계단식 단차가 실제로 읽히는 근경 — 문장을 사진이 뒷받침해야 한다",
       "photo": {
-        "key": "place/gamcheon-31877408798.jpg",
+        "key": "place/gamcheon-terraces.jpg",
         "slot": "place",
-        "rights": "licensed:wikimedia/CC BY-SA 2.0 — bryan...",
-        "credit_required": true
+        "rights": "licensed:wikimedia/CC BY 4.0 — S h y numis",
+        "credit_required": true,
+        "card_credit": "Photo: S h y numis / Wikimedia Commons · CC BY 4.0 · cropped",
+        "crop": "커먼즈 'Gamcheon Culture Village March 30 2024 5.jpg'에서 근경 1:1 1680px 크롭 후 2160px",
+        "note": "구 사진(빽빽이 겹친 지붕)은 문장에 반대 근거를 줬다. 이 컷은 분홍집 옥상이 트여 있고 뒷줄이 한 단 위에 앉은 것이 읽혀 문장을 뒷받침한다"
       }
     },
     {
@@ -92,12 +109,15 @@
         "support": "People live in these alleys. Keep your voice down and stay out of the private lanes."
       },
       "fact_source": "블로그 — 마을 곳곳의 안내판이 정숙과 사유 골목 출입 자제를 요청",
-      "image_intent": "실제 주거 골목 — 관광 동선이 아니라 사람이 사는 폭",
+      "image_intent": "실제 주거 골목 — 관광 동선이 아니라 사람이 사는 폭. 문이 실제로 판독돼야 한다",
       "photo": {
-        "key": "place/gamcheon-30809164987.jpg",
+        "key": "place/gamcheon-front-doors.jpg",
         "slot": "place",
-        "rights": "licensed:wikimedia/CC BY-SA 2.0 — bryan...",
-        "credit_required": true
+        "rights": "licensed:wikimedia/CC BY 4.0 — S h y numis",
+        "credit_required": true,
+        "card_credit": "Photo: S h y numis / Wikimedia Commons · CC BY 4.0 · cropped",
+        "crop": "커먼즈 'Gamcheon Culture Village March 30 2024 4.jpg'에서 근경 1:1 1680px 크롭 후 2160px",
+        "note": "카드가 '저것은 현관문이다'라고 말하므로 문이 실제로 보이는 구역이어야 했다. 사람은 프레임에 없다"
       }
     },
     {
@@ -110,16 +130,19 @@
           "is uphill"
         ],
         "accent": "uphill",
-        "support": "There is no flat version of Gamcheon. Come ready to climb."
+        "support": "There is no flat version of Gamcheon. Come ready to climb.",
+        "changed": "2026-08-06 — 구 헤드라인은 [\"It is stairs\", \"end to end\"]. 블로그에 발행된 참인 문장이지만 당시 사진이 그 문장의 예외(계단 없는 능선 보행로)라 사진이 문장을 반증했다. 사진을 문구에 맞추는 대신 문구를 사진에 맞췄다. 현재 문구는 계단의 편재가 아니라 경사를 주장하므로 사진이 바뀌어도 견딘다 — 실제로 2026-08-07 사진 전량 교체를 손대지 않고 통과했다"
       },
-      "fact_source": "블로그 — \"Come prepared to climb… there is no version of it that is flat\" 본문 + 이 사진 캡션 \"Signed paths run along the ridge\"",
-      "image_intent": "정비된 능선 보행로인데도 여전히 기울어 있는 지면",
+      "fact_source": "블로그 — \"Come prepared to climb… there is no version of it that is flat\"",
+      "image_intent": "쉬운 길과 오르막이 한 프레임에 같이 있는 사면",
       "photo": {
-        "key": "place/gamcheon-30809161817.jpg",
+        "key": "place/gamcheon-stairs-slope.jpg",
         "slot": "place",
-        "rights": "licensed:wikimedia/CC BY-SA 2.0 — bryan...",
+        "rights": "licensed:wikimedia/CC BY 4.0 — S h y numis",
         "credit_required": true,
-        "mismatch": "해소됨 (2026-08-06) — 사진을 문구에 맞추는 대신 문구를 사진에 맞췄다. 구 헤드라인 \"It is stairs, end to end\"는 블로그에 발행된 참인 문장이지만 이 컷에는 계단이 한 칸도 없어 사진이 문장을 반증했다. manifest.wanted의 감천 계단 촬영 요청은 유효하다 — 계단을 정면으로 다루는 카드를 만들려면 여전히 그 사진이 필요하다"
+        "card_credit": "Photo: S h y numis / Wikimedia Commons · CC BY 4.0 · cropped",
+        "crop": "커먼즈 'Gamcheon Culture Village March 30 2024 6.jpg'에서 근경 1:1 1680px 크롭 후 2160px",
+        "note": "임시 사진이다. manifest.wanted의 감천 계단 촬영 요청은 유효하되 사유가 바뀌었다 — 문구-사진 모순은 해소됐고, 남은 사유는 화질과 독점성이다"
       }
     },
     {
@@ -132,22 +155,42 @@
           "Walk down."
         ],
         "accent": "top",
-        "support": "Dropped at the top. Collected at the bottom.\nwww.sojournkorea.net/private-tour"
+        "support": "A private car and a day built around you.\nwww.sojournkorea.net/private-tour",
+        "changed": "QA 3회차 B1 — 구 서포트는 \"Dropped at the top. Collected at the bottom.\" 원장이 보증하지 않는 물류 약속을 단정형으로 말했다. 원장 소유자가 '보통 그렇게 되지만 일정·날씨·차량에 따라 움직이는 것이라 확약이 아니다'라고 답했고 원장 등재를 거부했다. 현재 문장은 facts[5](전용 차량·맞춤 일정) 안에 머문다. 사용자가 세 후보 중 이 문구를 골랐다. 원장은 고치지 않았다 — facts는 여전히 10건",
+        "changed_url": "QA 4회차 M1 — URL을 오렌지에서 흰색으로. 오렌지로는 햇빛 든 지붕 위에서 최저 1.75:1, footprint의 11%가 3.0 미만이었다. 흰색 전환 후 최저 4.94:1. 액센트는 헤드라인 'top' 하나로 유지"
       },
       "fact_source": "블로그 'How we help' + 01_brief.json facts[5] (전용 차량·맞춤 일정)",
       "image_intent": "위에서 아래로 내려가는 동선이 읽히는 사면",
       "photo": {
-        "key": "place/gamcheon-hero-src.jpg",
+        "key": "place/gamcheon-village-wide.jpg",
         "slot": "place",
-        "rights": "licensed:wikimedia/CC BY-SA 2.0 — bryan...",
+        "rights": "licensed:wikimedia/CC BY 4.0 — S h y numis",
         "credit_required": true,
-        "crop": "scale(2.4) translate(9%,-13%) — 02와 다른 구획을 쓴다"
+        "card_credit": "Photo: S h y numis / Wikimedia Commons · CC BY 4.0 · cropped",
+        "crop": "커먼즈 'Gamcheon Culture Village March 30 2024 8.jpg'(5328x4000)에서 1:1 4000px 크롭 후 2160px",
+        "note": "QA 4회차 n2 — 02와 같은 촬영분(March 30 2024 시리즈 3번/8번)의 거의 같은 구도라 서로 반복으로 읽힌다. 자사 촬영분이 들어오면 06을 우선 교체 대상으로 삼는다"
       }
     }
   ],
+  "photo_credit_policy": {
+    "decided": "2026-08-07 (QA 4회차 N1, 사용자 선택 C안)",
+    "card": "카드에는 축약형 — 저작자 / 출처 / 라이선스명 / cropped. 라이선스 URL은 싣지 않는다. 15px 크레딧 줄의 URL은 인스타에서 읽히지도 클릭되지도 않는다",
+    "caption": "완전 표기는 output/publish_caption.md. 원본 파일명·라이선스 링크·변형 내역 전체(크롭 + 검정 스크림 + 타입 오버레이)를 담는다",
+    "condition": "카드 크레딧 단독으로는 CC BY 4.0 표기가 완성되지 않는다. 발행자가 캡션을 함께 올려야 한다 — 이것이 축약형을 택한 조건이다",
+    "card_01": "CC0라 표기 의무 없음. 예우 크레딧을 그대로 유지하고 변형 표시를 붙이지 않는다"
+  },
   "publish_gate": {
     "status": "HOLD",
-    "reason": "사진 6개 슬롯 전부 CC BY-SA 2.0. 사진 위에 타입을 얹으면 카드가 2차적 저작물이 되어 카드 자체를 CC BY-SA 2.0으로 배포해야 한다. 저작자 표기는 유효하다(Flickr 계정명이 실제로 'bryan...', ID 91049143@N00, 커먼즈 확인).",
-    "resolution": "자사 실사진으로 교체하면 소멸. docs/SHOTLIST.md"
+    "reason": "C1 (BLOCKER, 채널) — output/blog.md가 2026-08-04에 폐기된 첫 글 그대로다. 그 canonical URL은 이미 /blog/haedong-yonggungsa-temple-by-the-sea로 301되고, 프론트매터의 'PATH PENDING: site has no /blog section' 주석도 거짓이다(/blog → 200). 카드 쪽 BLOCKER는 0건이지만 6장·블로그·SNS는 한 캠페인이라 부분 발행하지 않는다.",
+    "resolution": "사람 결정 대기. output/blog.md를 감천 편으로 교체하든 캠페인에서 떼든, 카드가 가리키는 장소와 블로그가 가리키는 상품이 같아져야 한다.",
+    "also_open": [
+      "C2 (MAJOR, 채널) — output/social.json이 여전히 busan-highlights-full-day. SNS 3편은 전일 코스 4개 지점 이야기이고 카드는 감천 한 곳이다",
+      "M2 (MAJOR, 원장) — 01_brief.json의 campaign_id가 여전히 busan-highlights-full-day, card_skeleton은 v1 6장. 원장 소유자는 사람이다. 에이전트가 고치지 않는다"
+    ],
+    "resolved": [
+      "B2 (구 차단 사유) — 감천 6슬롯 CC BY-SA 2.0. 2026-08-07 커먼즈 비-SA 풀로 전량 교체해 소멸. QA 4회차가 커먼즈 원본 파일 페이지 6건을 직접 대조해 -SA 0건 확인. 카드가 2차적저작물로서 CC BY-SA를 승계할 의무는 없다",
+      "B1 (구 차단 사유) — 카드 06의 원장 밖 서비스 약속. 원장을 늘리지 않고 문장을 원장 안으로 물려 해소",
+      "N1 (MAJOR) — CC BY 4.0 변형 표시 누락. 2026-08-07 카드 02~06 크레딧에 'cropped' 추가 + output/publish_caption.md 신설"
+    ]
   }
 }
