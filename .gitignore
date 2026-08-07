@@ -28,3 +28,6 @@ references/*.pdf
 # 웹 콘솔 — 실행 이력과 원장 백업은 로컬 운영 데이터다. 산출물이 아니다.
 web/.runs/
 web/.brief-backups/
+
+# 릴스 씬 캐시 — 재생성 가능한 중간물이다. 최종 mp4는 output/에 커밋한다.
+_workspace/.reel-cache/

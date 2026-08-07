@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sojourn — Gamcheon Culture Village reel (9:16)</title>
+<link rel="stylesheet" href="../.claude/skills/cardnews-render/assets/reel.css">
+<style> body { margin: 0; background: #000; } </style>
+<script>
+  /* ⚠️ 임시 조치 — 폰트 검사 계약을 맞춰 주는 코드다. 픽셀은 하나도 안 바뀐다.
+     lib/fonts.mjs의 assertFontsLoaded는 브랜드 6종(Montserrat 800·700·600,
+     Inter 900·700·400)이 전부 로드됐는지를 document.fonts.check로 확인한다.
+     그런데 @font-face는 그 페이스를 실제로 쓰는 요소가 있을 때만 로드된다.
+     그래서 이 검사는 "폰트가 쓸 수 있는 상태인가"가 아니라 "이 페이지가 카드
+     세트의 6종을 전부 쓰는가"를 묻는 검사가 돼 버렸다. 카드는 여섯 종을 다
+     쓰지만 릴스는 넷만 쓴다 — 릴스에 배지(Inter 700)가 없기 때문이다.
+     실측: 두 페이지의 document.fonts를 찍어 보면 파일은 양쪽 다 있고
+     (Montserrat 600/700/800이 같은 woff2 하나를 공유한다) 릴스 쪽만 700 두
+     종의 status가 'unloaded'다.
+     document.fonts.load()는 이 검사를 무디게 만들지 않는다 — woff2가 없거나
+     깨졌으면 load가 실패해 check도 그대로 false다. 없어지는 건 "이 페이지가
+     그 굵기를 쓰고 있어야 한다"는 조건 하나뿐이고, 그게 원래 없어야 할
+     조건이다. 제대로 된 수정은 assertFontsLoaded가 check 전에 load를 부르는
+     것이다(Task 11로 넘긴다).
+     REQUIRED 여섯 종을 통째로 부른다. 어느 굵기가 이 페이지에 쓰이는지는
+     조판을 고칠 때마다 바뀌는데(실제로 CTA의 <strong> 굵기를 고치는 순간
+     Inter 900이 로드 목록에서 빠졌다), 목록을 그때그때 맞추는 건 같은 함정을
+     다시 파는 짓이다. */
+  for (const spec of [
+    '800 80px Montserrat', '700 40px Montserrat', '600 32px Montserrat',
+    '900 40px Inter', '700 28px Inter', '400 24px Inter',
+  ]) document.fonts.load(spec);
+</script>
+<!-- campaign: gamcheon-culture-village · reel v1
+     씬 구성과 crop 근거는 _workspace/04_reel_plan.json에 있다.
+
+     COPY PROVENANCE. 이 파일의 모든 문장은 _workspace/03_cards.html에 이미
+     있는 것을 그대로 옮긴 것이다. 릴스에서 새로 쓴 문장은 없다.
+
+     02_carousel.json에서 가져오지 않은 이유: 그 파일은 QA 3회차 이전에서
+     멈춰 있다. 카드 6의 지문이 아직 "Dropped at the top. Collected at the
+     bottom."인데, 그건 원장이 뒷받침하지 않고 랜딩에도 없는 물류 약속이고
+     (B1 BLOCKER), 원장 소유자가 등재를 명시적으로 거절한 문장이다. 투어는
+     실제 이행이라 그 문장이 나가면 분쟁이 된다. 카드 3의 "in front of
+     another"(m1)도 같은 이유로 그 파일에만 남아 있다. 03_cards.html이 현재고
+     02_carousel.json 동기화는 card-producer의 일이다.
+
+     .soft는 옮기지 않았다. 카드에서 .soft는 두 헤드라인 줄의 무게를 갈라
+     주는 장치인데(800 → 700) reel.css에는 대응 규칙이 없고, 9:16의 96px
+     한 덩어리에서는 굳이 나눌 이유도 없다. 카드의 .hi는 reel.css의
+     .accent에 대응한다 — 씬당 한 구절, 카드와 같은 구절이다.
+
+     각 씬의 --dur은 04_reel_plan.json이 단어 수에서 계산한 값과 같아야
+     한다. 다섯 씬 전부 단어 수 상한(4500ms)에 걸려 같은 값이다.
+
+     ⚠️ 임시 조치 — 헤드라인의 style="text-transform:none".
+     reel.css의 .reel-scene .display는 font-family·weight·size·line-height·
+     letter-spacing·color를 전부 다시 선언하지만 text-transform은 빠뜨렸다.
+     그래서 brand.css의 Anton 시절 규칙(.display{text-transform:uppercase})이
+     새어 들어와 릴스가 카드 문장을 전부 대문자로 바꿔 버린다. 두 가지가
+     깨진다. ① v4 SIMPLE 카드는 문장부호 그대로의 sentence case인데, 릴스는
+     "같은 문장을 다시 조판한다"가 전제다 — 대문자는 옮긴 게 아니라 바꾼 거다.
+     ② 대문자가 줄 폭을 약 23% 늘려 다섯 중 셋이 세 줄로 접혔고, 씬 02는
+     액센트 구절이 "was a grant / title"로 갈라졌다.
+     실측: 96px 유지 + text-transform:none이면 다섯 전부 두 줄이고 최대 폭이
+     916px(936px 박스)다. 즉 크기를 줄일 이유가 없고 대문자만 문제였다.
+     고쳐야 할 자리는 reel.css지 이 파일이 아니다(Task 11로 넘긴다). 그때까지
+     인라인으로 막는데, <head>의 <style>이 아니라 h1의 style 속성인 것도
+     이유가 있다 — 씬 캐시 키는 reel.css·brand.css와 씬의 outerHTML을 해싱한다.
+     <head>에 넣으면 이 규칙을 고쳐도 캐시가 안 깨져서 낡은 프레임이 조용히
+     살아남는다. 인라인은 outerHTML 안에 있으므로 해시에 들어간다.
+
+     ⚠️ 임시 조치 2 — .scrim의 인라인 그라데이션.
+     reel.css의 기본 .scrim은 흰 글자를 기준으로 잡힌 램프다(중간대 0.15~0.25).
+     그런데 reel.css는 .display .accent를 --orange로도 칠한다. 오렌지는 휘도가
+     0.35로 중간이라 얇은 스크림에서 배경에 그대로 묻힌다 — 카드 쪽이 이미
+     겪고 고친 문제인데(brand.css의 scrim-soft 주석: "흰 글자는 휘도 1.0이라
+     얇은 스크림도 버티지만 오렌지는 바닥을 진짜로 어둡게 눌러야 한다")
+     reel.css가 같은 실수를 반복했다. 게다가 릴스는 타입을 하단으로 내려서
+     (인스타 세이프에어리어) 카드가 스크림을 가장 세게 먹인 상단이 아니라
+     가장 얇은 중간대에 액센트가 앉는다.
+     실측(기본 램프): 다섯 중 넷이 CONTRAST 실패 — "grant title" 1.01:1,
+     "front doors" 1.26:1, "uphill" 1.00:1, "top" 1.00:1. 커버의 "Gamcheon"도
+     1.02:1로 경고였다. 사진 크롭을 바꿔서 풀 수 있는 문제가 아니다 — 감천
+     사진은 프레임 어디를 잘라도 밝은 파스텔 집이다.
+     램프 네 종을 재서 ISSUE 0 · note 0이 되는 것 중 가장 약한 것을 골랐다
+     (0.45는 실패는 면하지만 경고 3건이 남고, 0.72·0.80은 통과하지만 사진을
+     더 지운다). 상단 30%는 손대지 않아 사진이 그대로 살아 있다.
+     여기도 고쳐야 할 자리는 reel.css다(Task 11).
+-->
+</head>
+<body>
+
+<!-- ============ 01 · HOOK (card 01) ============ -->
+<section class="reel-scene" style="--crop: 30% 50%; --dur: 4500ms">
+  <div class="photo photo-bg m-kenburns">
+    <!-- .photo가 .photo-bg와 함께 붙어 있어야 한다. 사진 출처 검사는
+         '.photo img'를 찾는데, photo-bg만 있으면 아무것도 못 찾고 조용히
+         통과한다 — 아무것도 안 보는 검사는 없는 검사보다 나쁘다. -->
+    <img src="../assets/photos/place/gamcheon-sky-vista.jpg"
+         data-photo="place/gamcheon-sky-vista.jpg" data-slot="place"
+         alt="Gamcheon Culture Village under open sky, the ridge line and the harbour beyond">
+  </div>
+  <div class="scrim" style="background:linear-gradient(to bottom,rgba(0,0,0,.55) 0%,rgba(0,0,0,.12) 30%,rgba(0,0,0,.62) 56%,rgba(0,0,0,.88) 100%)"></div>
+  <p class="photo-credit">Photo: VaneTrz20 / Wikimedia Commons · CC0</p>
+  <div class="type">
+    <h1 class="display m-type-in" style="text-transform:none"><span class="accent">Gamcheon</span><br>Culture Village</h1>
+    <p class="sub m-type-in delay-1">Busan's painted hillside — and the part the photographs leave out.</p>
+  </div>
+</section>
+
+<!-- ============ 02 · THE TURN (card 02) ============ -->
+<section class="reel-scene" style="--crop: 50% 50%; --dur: 4500ms">
+  <div class="photo photo-bg m-kenburns">
+    <img src="../assets/photos/place/gamcheon-valley-hill.jpg"
+         data-photo="place/gamcheon-valley-hill.jpg" data-slot="place"
+         alt="Gamcheon Culture Village filling the valley beneath a wooded ridge">
+  </div>
+  <div class="scrim" style="background:linear-gradient(to bottom,rgba(0,0,0,.55) 0%,rgba(0,0,0,.12) 30%,rgba(0,0,0,.62) 56%,rgba(0,0,0,.88) 100%)"></div>
+  <p class="photo-credit">Photo: S h y numis / Wikimedia Commons · CC BY 4.0</p>
+  <div class="type">
+    <h1 class="display m-type-in" style="text-transform:none">The nickname<br>was a <span class="accent">grant title</span></h1>
+    <p class="sub m-type-in delay-1">It came from a 2009 village arts competition — not from anyone who lives here.</p>
+  </div>
+</section>
+
+<!-- ============ 03 · THE ASK (card 04) ============ -->
+<section class="reel-scene" style="--crop: 58% 50%; --dur: 4500ms">
+  <div class="photo photo-bg m-kenburns">
+    <img src="../assets/photos/place/gamcheon-front-doors.jpg"
+         data-photo="place/gamcheon-front-doors.jpg" data-slot="place"
+         alt="Gamcheon houses at close range — front doors, barred windows, laundry on a line, potted plants">
+  </div>
+  <div class="scrim" style="background:linear-gradient(to bottom,rgba(0,0,0,.55) 0%,rgba(0,0,0,.12) 30%,rgba(0,0,0,.62) 56%,rgba(0,0,0,.88) 100%)"></div>
+  <p class="photo-credit">Photo: S h y numis / Wikimedia Commons · CC BY 4.0</p>
+  <div class="type">
+    <h1 class="display m-type-in" style="text-transform:none">Those are<br><span class="accent">front doors</span></h1>
+    <p class="sub m-type-in delay-1">People live in these alleys. Keep your voice down and stay out of the private lanes.</p>
+  </div>
+</section>
+
+<!-- ============ 04 · BEFORE YOU GO (card 05) ============ -->
+<section class="reel-scene" style="--crop: 20% 50%; --dur: 4500ms">
+  <div class="photo photo-bg m-kenburns">
+    <!-- ⚠️ 이 씬의 사진은 임시다. 자사 실사진이 들어오면 교체 대상. -->
+    <img src="../assets/photos/place/gamcheon-stairs-slope.jpg"
+         data-photo="place/gamcheon-stairs-slope.jpg" data-slot="place"
+         alt="A stairway climbing between Gamcheon houses, homes stacked on the slope above and below">
+  </div>
+  <div class="scrim" style="background:linear-gradient(to bottom,rgba(0,0,0,.55) 0%,rgba(0,0,0,.12) 30%,rgba(0,0,0,.62) 56%,rgba(0,0,0,.88) 100%)"></div>
+  <p class="photo-credit">Photo: S h y numis / Wikimedia Commons · CC BY 4.0</p>
+  <div class="type">
+    <h1 class="display m-type-in" style="text-transform:none">Even the easy way<br>is <span class="accent">uphill</span></h1>
+    <p class="sub m-type-in delay-1">There is no flat version of Gamcheon. Come ready to climb.</p>
+  </div>
+</section>
+
+<!-- ============ 05 · CTA (card 06) ============ -->
+<section class="reel-scene" style="--crop: 38% 50%; --dur: 4500ms">
+  <div class="photo photo-bg m-kenburns">
+    <img src="../assets/photos/place/gamcheon-village-wide.jpg"
+         data-photo="place/gamcheon-village-wide.jpg" data-slot="place"
+         alt="Gamcheon Culture Village filling the hillside across the valley">
+  </div>
+  <div class="scrim" style="background:linear-gradient(to bottom,rgba(0,0,0,.55) 0%,rgba(0,0,0,.12) 30%,rgba(0,0,0,.62) 56%,rgba(0,0,0,.88) 100%)"></div>
+  <p class="photo-credit">Photo: S h y numis / Wikimedia Commons · CC BY 4.0</p>
+  <div class="type">
+    <h1 class="display m-type-in" style="text-transform:none">Start at the <span class="accent">top</span>.<br>Walk down.</h1>
+    <!-- URL은 흰색이다. 카드에서 --orange로 뒀을 때 햇빛 받은 지붕 위에서
+         1.75:1까지 떨어졌고(QA M1), 하필 독자가 받아 적어야 하는 유일한
+         문자열이다. 액센트는 헤드라인의 "top" 하나로 유지된다. -->
+    <p class="sub m-type-in delay-1">A private car and a day built around you.<br><strong style="font-weight:700">www.sojournkorea.net/private-tour</strong></p>
+  </div>
+</section>
+
+</body>
+</html>
