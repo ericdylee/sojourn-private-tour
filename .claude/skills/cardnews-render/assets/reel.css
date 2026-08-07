@@ -115,6 +115,10 @@
 @keyframes kenburns { from { transform: scale(1); } to { transform: scale(1.08); } }
 .m-kenburns img { animation: kenburns var(--dur, 3000ms) linear both; transform-origin: center; }
 
+/* ENTRANCE_MS in reel-checks.mjs (400ms + the 160ms .delay-1 stagger = 560ms)
+ * tracks these two durations, so it is reading a fade, not a background,
+ * before this point. A fourth entrance primitive with a longer stagger moves
+ * both. */
 @keyframes typein { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
 .m-type-in { animation: typein 400ms cubic-bezier(0.2, 0.7, 0.3, 1) both; }
 .m-type-in.delay-1 { animation-delay: 160ms; }

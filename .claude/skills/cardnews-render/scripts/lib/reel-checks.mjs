@@ -51,30 +51,56 @@ export async function checkWordCount(el, { label }) {
   return [`${label}: WORDS — headline is ${n} words, limit is ${MAX_HEADLINE_WORDS} ("${text.trim()}")`];
 }
 
-/* seekTo(page, 0) rewinds every animation to its own from-keyframe, including
- * finite entrance flourishes like reel.css's .m-type-in (fades .display/.sub
- * in from opacity:0 over ~400-560ms) — that is not the same moment as "the
- * scene has settled and the words are actually on screen". Landing the first
- * sample mid-fade reads as text with full-strength ink over ~0 opacity —
- * contrast.mjs's `invisible` flag checks the element's static `color` alpha,
- * not the ancestor Animation's opacity folded into the ratio math, so this
- * comes back "worst 1.00:1", a CONTRAST fail — for a reason that has nothing
- * to do with what sits behind the type. Every scene that uses the standard
- * entrance treatment would trip this at t=0, which makes the check noise, not
- * signal. Telling "entrance flourish" apart from "the camera move this check
- * exists to watch" needs no reel.css-specific knowledge: ken-burns spans the
- * WHOLE scene (its animation's active duration equals durationMs); a
- * flourish's does not. */
-async function settledStart(page, durationMs) {
-  return page.evaluate((total) => {
-    let end = 0;
-    for (const a of document.getAnimations()) {
-      const t = a.effect?.getComputedTiming?.();
-      if (!t || !Number.isFinite(t.activeDuration) || t.activeDuration >= total) continue;
-      end = Math.max(end, (t.delay || 0) + t.activeDuration);
-    }
-    return Math.min(end, total);
-  }, durationMs);
+/* reel.css's only entrance treatment is `typein 400ms` with a 160ms stagger
+ * (.delay-1), so 560ms is when the type is fully on screen. Sampling before
+ * that measures a fade, not a background. Quartered so a short scene still
+ * gets three separated marks.
+ *
+ * A first version of this derived the start mark from document.getAnimations()
+ * instead of a constant, to avoid hardcoding reel.css's numbers. Review found
+ * two ways that was worse: (a) a scene author is free to stagger a second line
+ * past 560ms (reel.css's own idiom, just slower), which pushed the derived
+ * start past a real early defect and reported zero issues where the literal
+ * marks caught one at 1.00:1; (b) it queried document.getAnimations() — the
+ * whole page, not the element — and Task 10 puts every scene of a reel on one
+ * page, so a neighbouring scene's shorter ken-burns duration counted as
+ * "finite relative to this scene" and pushed the start mark out by however
+ * long that neighbour happened to run. Scoping the query to the element fixes
+ * (b) but not (a). A plain constant is immune to both, at the cost of a
+ * residual, now-bounded and documented hole: see below. */
+const ENTRANCE_MS = 560;
+
+// Element identity: strip the sample's timestamp, then keep everything through
+// the closing quote of the element's quoted text. Two different elements never
+// share a quoted text run; the same element's message varies mark to mark only
+// in the numbers that follow it (timestamp, `worst X:1`, area share) — which a
+// moving background changes ON PURPOSE, so none of that belongs in the key.
+// (The naive "strip only the timestamp" key from the first version left those
+// numbers in, so the same element failing at three different marks against a
+// moving background — the exact case this check exists for — produced three
+// uncollapsed strings, not one.)
+function dedupKey(msg) {
+  const stripped = msg.replace(/ @\d+ms/, '');
+  const m = /^(.*?"[^"]*")/.exec(stripped);
+  return m ? m[1] : stripped;
+}
+
+// Worst (lowest) ratio wins over first-seen, so three samples at one spot
+// report the single frame that actually failed, not whichever mark happened
+// to run first. The transparent-colour/no-text-stroke variant (contrast.mjs)
+// has no `worst X:1` to compare — when either side lacks one, first-seen
+// stands rather than guessing.
+function keepWorst(map, key, msg) {
+  const prev = map.get(key);
+  if (!prev) {
+    map.set(key, msg);
+    return;
+  }
+  const prevWorst = /worst ([\d.]+):1/.exec(prev);
+  const curWorst = /worst ([\d.]+):1/.exec(msg);
+  if (prevWorst && curWorst && parseFloat(curWorst[1]) < parseFloat(prevWorst[1])) {
+    map.set(key, msg);
+  }
 }
 
 /* Three samples, worst wins.
@@ -85,24 +111,29 @@ async function settledStart(page, durationMs) {
  * STILL image. Moving makes it easier to miss, not harder.
  *
  * The samples deliberately include the last frame: the end state is where a
- * zoom has moved the background furthest from what the author saw. */
+ * zoom has moved the background furthest from what the author saw. The first
+ * sample is ENTRANCE_MS, not literal 0 — reel.css's type fades in from
+ * opacity:0, and seeking to true zero measures that fade, not a background
+ * (verified against scenes-ok.html; see task-7-report.md).
+ *
+ * Residual hole, bounded and left in on purpose rather than silently reopened:
+ * a defect confined entirely to [0, ENTRANCE_MS) that has already cleared by
+ * the first sample goes unseen. Ken-burns is a linear ~8% zoom over the WHOLE
+ * scene and cannot produce one; a cut or a wipe could, and reel.css has
+ * neither. If reel.css ever grows a fourth entrance primitive, ENTRANCE_MS
+ * needs to move with it — see the comment on @keyframes typein. */
 export async function checkContrastOverTime(page, el, { label, durationMs }) {
-  const start = await settledStart(page, durationMs);
+  const start = Math.min(ENTRANCE_MS, Math.round(durationMs / 4));
   const marks = [start, Math.round(durationMs / 2), Math.max(0, durationMs - 1)];
-  const seen = new Map();
-  const notes = [];
+  const seenIssues = new Map();
+  const seenNotes = new Map();
 
   for (const t of marks) {
     await seekTo(page, t);
     const r = await checkContrast(page, el, { label: `${label} @${t}ms` });
-    // Same defect at three timestamps is one defect. Key on everything after
-    // the timestamp so the dedup does not collapse genuinely different spots.
-    for (const i of r.issues) {
-      const key = i.replace(/ @\d+ms/, '');
-      if (!seen.has(key)) seen.set(key, i);
-    }
-    notes.push(...r.notes);
+    for (const i of r.issues) keepWorst(seenIssues, dedupKey(i), i);
+    for (const n of r.notes) keepWorst(seenNotes, dedupKey(n), n);
   }
 
-  return { issues: [...seen.values()], notes };
+  return { issues: [...seenIssues.values()], notes: [...seenNotes.values()] };
 }

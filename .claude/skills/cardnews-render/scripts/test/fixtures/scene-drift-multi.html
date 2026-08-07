@@ -1,0 +1,36 @@
+<!doctype html>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../../assets/reel.css">
+<style>
+  body { margin: 0; }
+  /* Regression for the dedup bugs review found in checkContrastOverTime
+   * (task-7, IMPORTANT 1 & 2): a background that moves for the WHOLE scene —
+   * the case this check exists for — makes `worst X:1` and the area share
+   * differ at every sampled mark even when it is the same element failing the
+   * whole time. The first version's dedup key stripped only the timestamp,
+   * so one moving defect produced three uncollapsed issue strings instead of
+   * one, and notes were not deduplicated at all (three copies of the same
+   * warning, the exact "gets tuned out" failure contrast.mjs's own comments
+   * (line ~26-29) warn about).
+   *
+   * .display's own background stays bright (#fff -> #d9d9d9) the entire
+   * scene, so white text on it fails outright (<2:1) at all three marks, with
+   * a different worst ratio each time. .sub's own background sits in the
+   * 2:1-3:1 warn band the entire scene (#b8b8b8 -> #9c9c9c), so it produces a
+   * NOTE, not an issue, at all three marks, again with a different ratio each
+   * time. Measured before committing: .display 1.06:1 / 1.18:1 / 1.41:1 at
+   * the three marks; .sub 2.10:1 / 2.32:1 / 2.75:1. A correct implementation
+   * reports exactly one issue (worst 1.06:1) and exactly one note (worst
+   * 2.10:1) — not three of each. */
+  .reel-scene .scrim { display: none; }
+  .display { background: #fff; animation: failband 3000ms linear both; }
+  @keyframes failband { from { background: #fff; } to { background: #d9d9d9; } }
+  .sub { background: #fff; animation: warnband 3000ms linear both; }
+  @keyframes warnband { from { background: #b8b8b8; } to { background: #9c9c9c; } }
+</style>
+<section class="reel-scene" style="--dur: 3000ms">
+  <div class="type">
+    <h1 class="display">Two words</h1>
+    <p class="sub">Warn band line here</p>
+  </div>
+</section>

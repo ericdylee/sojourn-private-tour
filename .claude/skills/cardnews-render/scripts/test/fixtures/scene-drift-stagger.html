@@ -1,0 +1,28 @@
+<!doctype html>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../../assets/reel.css">
+<style>
+  body { margin: 0; }
+  /* Regression for the settledStart() defect review found (task-7,
+   * adv-a/adv-b): a scene-spanning wash (its animation's active duration
+   * equals durationMs, same idiom as scene-drift.html's .drift) crosses from
+   * unreadable (white on white) to readable (white on black) EARLY, well
+   * inside reel.css's own entrance window. A second, deliberately staggered
+   * entrance line (delay: 900ms — .delay-1's own idiom, just slower) is what
+   * used to fool a getAnimations()-derived "start" mark into landing past the
+   * defect entirely, so checkContrastOverTime reported zero issues though the
+   * true first stretch of the scene was white text on a white background.
+   * ENTRANCE_MS (reel-checks.mjs) is a fixed 560ms and does not look at this
+   * line's timing at all, so it cannot be fooled the same way. */
+  .wash { position: absolute; inset: 0; z-index: 0; background: #fff; animation: towhite 4500ms linear both; }
+  @keyframes towhite { from { background: #fff; } to { background: #000; } }
+  .reel-scene .scrim { display: none; }
+  .late-line { animation: typein 400ms linear 900ms both; }
+</style>
+<section class="reel-scene" style="--dur: 4500ms">
+  <div class="wash"></div>
+  <div class="type">
+    <h1 class="display">Two words</h1>
+    <p class="sub late-line">Trails off late</p>
+  </div>
+</section>
