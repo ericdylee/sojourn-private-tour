@@ -16,6 +16,7 @@ import { Run } from './lib/runner.mjs'
 import { AGENTS } from './lib/prompts.mjs'
 import { readArtifacts } from './lib/artifacts.mjs'
 import { readBrief, writeBrief, createBrief } from './lib/brief.mjs'
+import { listPhotos, savePhoto, MAX_BYTES } from './lib/photos.mjs'
 import * as store from './lib/runs.mjs'
 
 const PORT = Number(process.env.PORT || 4173)
@@ -341,6 +342,38 @@ const server = http.createServer(async (req, res) => {
         return send(res, 200, writeBrief(patch))
       } catch (err) {
         return send(res, 400, { error: err.message, validation: err.validation || null })
+      }
+    }
+
+    // ---- photos ----
+    if (pathname === '/api/photos' && method === 'GET') {
+      return send(res, 200, listPhotos())
+    }
+
+    /**
+     * Upload. Body is JSON with the bytes base64'd rather than multipart: one
+     * request carries the picture and its ledger entry together, which is what
+     * makes it impossible to land a file without registering it.
+     *
+     * Refused while an agent is running, for the same reason the ledger is —
+     * the producer reads this manifest mid-run, and a photo appearing underneath
+     * it is a race with no upside.
+     */
+    if (pathname === '/api/photos' && method === 'POST') {
+      if (activeRun && (activeRun.status === 'running' || activeRun.status === 'starting')) {
+        return fail(res, 409, '실행 중에는 사진을 올릴 수 없습니다. 에이전트가 같은 원장을 읽고 있습니다.')
+      }
+      let body
+      try {
+        // base64 inflates by a third; the cap has to clear MAX_BYTES with room.
+        body = await readJson(req, Math.ceil(MAX_BYTES * 1.4))
+      } catch (err) {
+        return fail(res, 413, err.message)
+      }
+      try {
+        return send(res, 201, savePhoto(body))
+      } catch (err) {
+        return send(res, 400, { error: err.message, field: err.field ?? null })
       }
     }
 

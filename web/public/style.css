@@ -1861,3 +1861,154 @@ textarea {
 #instruction {
   min-height: 150px;
 }
+
+/* ==========================================================================
+   사진 — 업로드 + 라이브러리
+
+   업로드가 곧 원장 등재이므로, 화면도 "파일을 던지는 곳"과 "출처를 적는 곳"을
+   한 패널 안에 둔다. 둘을 나누면 파일만 올리고 등재를 잊는 경로가 생긴다.
+   ========================================================================== */
+
+.photo-drop {
+  border: 1px dashed var(--line-lift);
+  background: var(--field);
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  cursor: pointer;
+  transition: border-color var(--tick), background var(--tick);
+}
+.photo-drop:hover,
+.photo-drop:focus-visible,
+.photo-drop.is-over {
+  border-color: var(--blue-lift);
+  background: var(--panel-2);
+  outline: none;
+}
+.photo-drop__preview {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  text-align: center;
+}
+.photo-drop__icon {
+  font-size: 26px;
+  color: var(--fg-faint);
+  font-family: var(--mono);
+}
+.photo-drop__text {
+  color: var(--fg-dim);
+  font-size: 14px;
+}
+.photo-drop__hint {
+  color: var(--fg-faint);
+  font-size: 12px;
+  font-family: var(--mono);
+}
+.photo-drop__img {
+  max-height: 260px;
+  max-width: 100%;
+  object-fit: contain;
+  border: 1px solid var(--line);
+}
+.photo-drop__facts {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--fg-dim);
+}
+
+.photo-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.photo-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--fg-dim);
+}
+.photo-check input {
+  accent-color: var(--blue-lift);
+}
+
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+.photo-card {
+  margin: 0;
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  display: flex;
+  flex-direction: column;
+}
+.photo-card__img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+  cursor: zoom-in;
+}
+.photo-card__gone {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  color: var(--coral);
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--field);
+}
+.photo-card.is-missing {
+  border-color: var(--coral);
+}
+.photo-card__meta {
+  padding: 9px 10px 11px;
+  display: grid;
+  gap: 5px;
+}
+.photo-card__name {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--fg);
+  word-break: break-all;
+}
+.photo-card__sub {
+  font-size: 12px;
+  color: var(--fg-dim);
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.photo-card__tags {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 11px;
+  font-family: var(--mono);
+}
+
+.wanted {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  color: var(--fg-dim);
+  font-size: 13px;
+  line-height: 1.5;
+}
