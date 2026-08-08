@@ -110,11 +110,15 @@ const { photoIndex, manifestPath } = await loadPhotoIndex();
 // and responsive selection (`srcset`, `<picture><source>`) is refused outright.
 //
 // It does NOT establish that the frames contain only cleared photography. Not
-// covered, and none of it is inspected anywhere else either: CSS
-// `background-image`, <canvas>, SVG <image>, markup outside those sections, and
-// any scene the plan does not list — that last one fails the run through the
-// scene-count ISSUE below rather than through this check. Anything reaching the
-// encoder by one of those routes is unjudged.
+// covered, and none of it is inspected anywhere else either: CSS that paints an
+// image — including `content: url(...)` on the <img> ITSELF, which replaces what
+// it paints while every label still names the cleared file — plus
+// `background-image`, `mask-image`, `border-image`, `image-set()`; painters that
+// are not <img> (<canvas>, SVG <image>, <input type="image">, <object>/<embed>/
+// <iframe>, <video poster>); <img> inside a shadow root; markup outside those
+// sections; and any scene the plan does not list — that last one fails the run
+// through the scene-count ISSUE below rather than through this check. Anything
+// reaching the encoder by one of those routes is unjudged.
 //
 // This comment has been narrowed twice, both times after the code under it was
 // found to be narrower still. It once said the two sources were "provably the

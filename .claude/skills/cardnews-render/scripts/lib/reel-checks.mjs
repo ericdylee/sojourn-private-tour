@@ -245,11 +245,26 @@ async function canonicalPath(fsPath) {
  * and the manifest lookup key off; it is bookkeeping that must agree, not
  * evidence of what was painted.
  *
- * What is NOT covered, and stays uncovered on purpose: CSS `background-image`
- * (not an `<img>`; nothing in this pipeline inspects it), `<canvas>` and SVG
- * `<image>`, markup outside `section.reel-scene`, and any scene the plan does
- * not list — the last of those fails the run through the scene-count issue in
- * render-reel.mjs instead.
+ * What is NOT covered, and stays uncovered on purpose:
+ *
+ *   - **CSS that paints an image.** Not just `background-image` on some other
+ *     element — `content: url(...)` on the `<img>` ITSELF replaces what it
+ *     paints while `src`, `data-photo` and `currentSrc` all keep naming the
+ *     cleared file. Reproduced: an un-bannered publishable reel whose frames
+ *     were a CC BY-SA photograph under a CC0 credit line. Same for
+ *     `mask-image`, `border-image`, `list-style-image`, `image-set()`.
+ *   - **Painters that are not `<img>`:** `<canvas>`, SVG `<image>`,
+ *     `<input type="image">`, `<object>`/`<embed>/`<iframe>`, `<video poster>`.
+ *   - **`<img>` inside a shadow root** — `querySelectorAll` does not descend.
+ *   - Markup outside `section.reel-scene`, and any scene the plan does not
+ *     list — the last of those fails the run through the scene-count issue in
+ *     render-reel.mjs instead.
+ *
+ * So: this check establishes that the `<img>` elements agree with the ledger
+ * about which file they fetch. **It does not establish that the frames contain
+ * only cleared photography.** Do not widen that sentence — the branch has been
+ * bitten three times by a comment claiming more than the code, and each time
+ * the next person believed it.
  *
  * Five orphaned CC BY-SA 2.0 Gamcheon rows sit in the manifest today with names
  * one character apart from the ones in use, so this is a typo away, not a
@@ -287,9 +302,11 @@ export async function checkPlanPhoto(el, { label, planPhoto, photosRoot = PHOTOS
     return [...node.querySelectorAll('img')].map((img) => {
       const raw = img.getAttribute('src');
       // currentSrc is the URL the selection algorithm actually settled on —
-      // already absolute, and the only one of the three that is guaranteed to
-      // name the bytes on screen. It is empty before selection runs, so the
-      // src attribute stands in.
+      // already absolute, and the closest of the three to what was fetched for
+      // this element. It is NOT a guarantee about the pixels: CSS can replace
+      // what an <img> paints (`content: url(...)`) while currentSrc still names
+      // the cleared file. See the not-covered list above. It is empty before
+      // selection runs, so the src attribute stands in.
       const current = canon(img.currentSrc || null);
       const picture = img.parentElement && img.parentElement.tagName === 'PICTURE' ? img.parentElement : null;
       return {
