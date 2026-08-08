@@ -3,6 +3,7 @@ import * as launch from './views/launch.js'
 import * as live from './views/live.js'
 import * as artifacts from './views/artifacts.js'
 import * as brief from './views/brief.js'
+import * as photos from './views/photos.js'
 import * as history from './views/history.js'
 
 /* ==========================================================================
@@ -240,7 +241,7 @@ function paintLamp() {
    Router
    ========================================================================== */
 
-const VIEWS = { launch, live, artifacts, brief, history }
+const VIEWS = { launch, live, artifacts, brief, photos, history }
 let current = null
 
 async function route() {
