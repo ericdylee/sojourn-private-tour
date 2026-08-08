@@ -3,7 +3,13 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
-import { checkSafeArea, checkWordCount, checkTextTransform } from '../lib/reel-checks.mjs';
+import {
+  checkSafeArea,
+  checkWordCount,
+  checkTextTransform,
+  checkSingleLine,
+  checkPlanPhoto,
+} from '../lib/reel-checks.mjs';
 
 async function scene(file) {
   const browser = await chromium.launch();
@@ -86,6 +92,97 @@ test('같은 씬을 다른 검사에 걸면 아무도 못 잡는다 — 이 검�
   await browser.close();
   assert.deepEqual(safe, [], '세이프에어리어는 대문자를 못 본다');
   assert.deepEqual(words, [], '단어 수는 대문자를 못 본다');
+});
+
+// --- 줄바꿈(한 줄이어야 하는 요소) --------------------------------------
+//
+// lib/contrast.mjs의 APPEARANCE.singleLine은 카드 전용 선택자 5종(.cta-band
+// .url 등)이고, render-cards.mjs만 그걸 쓴다. 릴스는 그 선택자를 하나도
+// 그리지 않으므로 그대로 가져오면 "항상 아무것도 못 찾는 검사"가 된다.
+// 릴스에서 한 줄이 전제인 것은 `.sub strong` 안의 URL 하나뿐이다.
+
+test('URL이 한 줄에 들어가면 아무 말도 하지 않는다', async () => {
+  const { browser, el } = await scene('scene-url-ok.html');
+  const issues = await checkSingleLine(el, { label: 'scene 05' });
+  await browser.close();
+  assert.deepEqual(issues, []);
+});
+
+test('URL이 두 줄로 접히면 잡는다', async () => {
+  const { browser, el } = await scene('scene-longurl.html');
+  const issues = await checkSingleLine(el, { label: 'scene 05' });
+  await browser.close();
+  assert.equal(issues.length, 1, `접힌 URL을 잡아야 한다 — 실제: ${JSON.stringify(issues)}`);
+  assert.match(issues[0], /LINES — strong wrapped onto 2 lines/);
+  assert.match(issues[0], /sojournkorea/, `어떤 문자열이 접혔는지 말해야 한다 — ${issues[0]}`);
+});
+
+test('접힌 URL을 다른 검사에 걸면 아무도 못 잡는다 — 이 검사가 메우는 침묵', async () => {
+  // scene-longurl.html은 세이프에어리어·단어 수·대문자 어디에도 걸리지 않는다.
+  // 이 테스트가 빨간불이 되면 checkSingleLine은 중복이다. 그때까지는 유일하다.
+  const { browser, el } = await scene('scene-longurl.html');
+  const safe = await checkSafeArea(el, { label: 'scene 05' });
+  const words = await checkWordCount(el, { label: 'scene 05' });
+  const caps = await checkTextTransform(el, { label: 'scene 05' });
+  await browser.close();
+  assert.deepEqual(safe, [], '세이프에어리어는 접힌 URL을 못 본다');
+  assert.deepEqual(words, [], '단어 수는 헤드라인만 센다');
+  assert.deepEqual(caps, [], 'text-transform은 접힌 URL을 못 본다');
+});
+
+// --- 원장 ↔ HTML 사진 대조 ----------------------------------------------
+//
+// 발행 게이트는 04_reel_plan.json의 photo로 라이선스를 판정하고, 프레임에
+// 찍히는 것은 HTML의 <img data-photo>다. 둘을 맞춰 보는 코드가 없어서,
+// 게이트가 CC BY 4.0을 통과시키는 동안 CC BY-SA 2.0 사진이 전 프레임에
+// 들어가고도 이슈 0건·발행 가능 판정이 나왔다(실제 재현됨).
+
+test('원장과 HTML이 같은 사진을 가리키면 통과한다', async () => {
+  const { browser, el } = await scene('scenes-ok.html');
+  const issues = await checkPlanPhoto(el, {
+    label: 'scene 01',
+    planPhoto: 'place/gamcheon-sky-vista.jpg',
+  });
+  await browser.close();
+  assert.deepEqual(issues, []);
+});
+
+test('원장과 HTML이 다른 사진을 가리키면 잡는다 — 게이트가 검사한 파일과 찍힌 파일이 다르다', async () => {
+  // 매니페스트에 실재하는 고아 행. 이름이 한 글자 차이라 오타 거리다.
+  const { browser, el } = await scene('scenes-ok.html');
+  const issues = await checkPlanPhoto(el, {
+    label: 'scene 01',
+    planPhoto: 'place/gamcheon-hero-src.jpg',
+  });
+  await browser.close();
+  assert.equal(issues.length, 1, `불일치를 잡아야 한다 — 실제: ${JSON.stringify(issues)}`);
+  assert.match(issues[0], /원장과 HTML이 다른 사진을 가리킨다/);
+  assert.match(issues[0], /gamcheon-hero-src\.jpg/, `원장 쪽 파일명을 밝혀야 한다 — ${issues[0]}`);
+  assert.match(issues[0], /gamcheon-sky-vista\.jpg/, `HTML 쪽 파일명을 밝혀야 한다 — ${issues[0]}`);
+});
+
+test('원장이 사진을 지정했는데 HTML에 <img>가 없으면 잡는다', async () => {
+  const { browser, el } = await scene('scene-no-headline.html');
+  const issues = await checkPlanPhoto(el, {
+    label: 'scene 01',
+    planPhoto: 'place/gamcheon-sky-vista.jpg',
+  });
+  await browser.close();
+  assert.equal(issues.length, 1, JSON.stringify(issues));
+  assert.match(issues[0], /HTML에 <img>가 없다/);
+});
+
+test('checkPhotos는 이 불일치를 못 본다 — 라이선스 규칙이 거기 없다', async () => {
+  // checkPhotos는 매니페스트 등재·슬롯·AI생성·크레딧만 본다. 원장이 무엇을
+  // 가리키는지는 인자로 받지도 않는다. 그래서 이 검사가 따로 필요하다.
+  const { loadPhotoIndex, checkPhotos } = await import('../lib/photos.mjs');
+  const { browser, el } = await scene('scenes-ok.html');
+  const { photoIndex, manifestPath } = await loadPhotoIndex(
+    resolve(import.meta.dirname, '../../../../../assets/photos/manifest.json'),
+  );
+  const issues = await checkPhotos(el, { photoIndex, manifestPath, label: 'scene 01' });
+  await browser.close();
+  assert.deepEqual(issues, [], `checkPhotos는 이 씬에 아무 불만이 없다 — ${JSON.stringify(issues)}`);
 });
 
 import { checkContrastOverTime } from '../lib/reel-checks.mjs';

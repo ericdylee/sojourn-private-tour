@@ -25,8 +25,15 @@ import { spawn } from 'node:child_process';
 import { assertFontsLoaded } from './lib/fonts.mjs';
 import { loadPhotoIndex, checkPhotos } from './lib/photos.mjs';
 import { loadReelPlan } from './lib/reel-plan.mjs';
-import { seekTo, openEncoder, captureScene, FPS } from './lib/reel-capture.mjs';
-import { checkSafeArea, checkWordCount, checkTextTransform, checkContrastOverTime } from './lib/reel-checks.mjs';
+import { seekTo, openEncoder, captureScene, probeVideo, verifySceneVideo, FPS, DURATION_TOLERANCE_MS } from './lib/reel-capture.mjs';
+import {
+  checkSafeArea,
+  checkWordCount,
+  checkTextTransform,
+  checkSingleLine,
+  checkPlanPhoto,
+  checkContrastOverTime,
+} from './lib/reel-checks.mjs';
 import { decideGate } from './lib/reel-gate.mjs';
 import { sceneKey } from './lib/reel-cache.mjs';
 
@@ -84,6 +91,16 @@ if (plan.total_ms < MIN_TOTAL_MS || plan.total_ms > MAX_TOTAL_MS) {
 const { photoIndex, manifestPath } = await loadPhotoIndex();
 // Scene index and photo key ride along so an unresolvable licence names the
 // scene to go fix. Only the `rights` field is matched by the gate.
+//
+// `rights` is built from the PLAN, not from the DOM, and stays that way. The
+// verdict is an input to the frames themselves — it decides the burned-in
+// banner and is folded into every scene's cache key — so it has to be settled
+// before a browser opens, while the DOM does not exist yet. Rebuilding it from
+// the DOM would mean opening the page, reading the images, deciding, and only
+// then re-navigating to capture: a two-phase render for no extra safety, given
+// that checkPlanPhoto (below) makes a plan/DOM disagreement a hard ISSUE. With
+// that check in place the two sources are provably the same file on every scene
+// that reaches the encoder, and a scene where they differ never gets there.
 const rights = plan.scenes.map((s, i) => ({
   scene: `scene ${String(i + 1).padStart(2, '0')}`,
   photo: s.photo ?? null,
@@ -184,7 +201,12 @@ for (const [i, spec] of plan.scenes.entries()) {
   issues.push(...(await checkSafeArea(chkEl, { label })));
   issues.push(...(await checkWordCount(chkEl, { label })));
   issues.push(...(await checkTextTransform(chkEl, { label })));
+  issues.push(...(await checkSingleLine(chkEl, { label })));
   issues.push(...(await checkPhotos(chkEl, { photoIndex, manifestPath, label })));
+  // Reconciles the ledger the gate judged against the markup the encoder
+  // photographs. Without it the gate can clear one file while another is in
+  // every frame — see the comment on checkPlanPhoto.
+  issues.push(...(await checkPlanPhoto(chkEl, { label, planPhoto: spec.photo ?? null })));
   const c = await checkContrastOverTime(checkPage, chkEl, { label, durationMs: spec.duration_ms });
   issues.push(...c.issues);
   notes.push(...c.notes);
@@ -224,6 +246,32 @@ for (const [i, spec] of plan.scenes.entries()) {
     hit = false;
   }
 
+  // A file existing at the key is not the same as the SCENE existing there.
+  // ffmpeg traps SIGINT and finalises its output, so Ctrl-C during a cold
+  // render — the normal way anyone stops a four-minute job — used to leave a
+  // structurally valid, playable, SHORT mp4 at a legitimate key. Reproduced:
+  // an interrupt partway through scene 04 left 4.033s / 121 frames where 4.5s
+  // / 135 belonged; the next run printed `scene 04: cache hit (4500ms)`, exited
+  // 0, and shipped a 22.03s reel whose summary line still read 22.5s, because
+  // that line echoed plan.total_ms and nothing ever measured the artifact.
+  //
+  // openEncoder's .part-then-rename stops new entries like that from appearing.
+  // This check is what evicts the ones already written, and what catches any
+  // other way a cached file drifts from its key (a truncating disk, a manual
+  // copy). A mismatch is an ISSUE — so the run fails and a human hears about
+  // it — AND the scene re-captures, so the cache is repaired rather than left
+  // to fail again tomorrow.
+  if (hit) {
+    const stale = await verifySceneVideo(cached, { durationMs: spec.duration_ms, fps });
+    if (stale.length) {
+      issues.push(
+        `${label}: CACHE — 캐시된 씬이 규격과 다르다 (${stale.join('; ')}). 지우고 다시 캡처한다`,
+      );
+      await rm(cached, { force: true });
+      hit = false;
+    }
+  }
+
   if (hit) {
     console.log(`${label}: cache hit (${spec.duration_ms}ms)`);
   } else {
@@ -236,6 +284,12 @@ for (const [i, spec] of plan.scenes.entries()) {
       onFrame: enc.write,
     });
     await enc.close();
+    // Measured, not counted. `n` is how many screenshots were handed to
+    // ffmpeg; this is how many came out the other side.
+    const wrong = await verifySceneVideo(cached, { durationMs: spec.duration_ms, fps });
+    if (wrong.length) {
+      issues.push(`${label}: ENCODE — 캡처 결과가 규격과 다르다 (${wrong.join('; ')})`);
+    }
     console.log(`${label}: captured ${n} frames (${spec.duration_ms}ms)`);
   }
 
@@ -287,7 +341,34 @@ await run('ffmpeg', [
 
 await rm(silent, { force: true });
 
-console.log(`\n${plan.scenes.length} scene(s), ${(plan.total_ms / 1000).toFixed(1)}s -> ${finalPath}`);
+// The closing line reports the FILE, not the plan.
+//
+// It used to print plan.total_ms — the number the renderer was aiming at — so
+// the one line an operator reads was structurally incapable of disagreeing with
+// the plan. A run that shipped 22.03 seconds announced 22.5 and nobody could
+// have known from the output. Every scene has been measured individually by
+// this point; measuring the concatenated artifact costs one ffprobe and closes
+// the gap between "what was asked for" and "what is on disk".
+//
+// A deviation here means concat or the audio mux dropped something the scenes
+// had, which cannot be reported as an ISSUE (that gate has already closed) and
+// must not be reported as a note either: a wrong-length mp4 with a publishable
+// name is precisely what this script exists to not produce. So it fails, and
+// takes the file with it.
+const measured = await probeVideo(finalPath).catch((e) => ({ durationMs: null, error: e.message }));
+if (measured.durationMs === null || Math.abs(measured.durationMs - plan.total_ms) > DURATION_TOLERANCE_MS) {
+  await rm(finalPath, { force: true });
+  console.error(
+    `\n최종 mp4가 원장 길이와 다르다 — 원장 ${(plan.total_ms / 1000).toFixed(3)}초, ` +
+      `실측 ${measured.durationMs === null ? `측정 실패(${measured.error ?? '알 수 없음'})` : `${(measured.durationMs / 1000).toFixed(3)}초`}. ` +
+      '씬은 전부 검증을 통과했으므로 concat 또는 오디오 먹싱 단계의 문제다. 파일을 지웠다.',
+  );
+  process.exit(1);
+}
+
+console.log(
+  `\n${plan.scenes.length} scene(s), ${(measured.durationMs / 1000).toFixed(2)}s 실측 -> ${finalPath}`,
+);
 
 if (notes.length) {
   console.log('\nNOTES (not failures):');

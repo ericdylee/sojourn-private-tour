@@ -14,6 +14,25 @@ export const MAX_HEADLINE_WORDS = 6;
 
 const READABLE = '.display, .sub, .photo-credit, .cta-band, .badge, .label';
 
+/* Elements whose meaning depends on staying on one line. An allowlist, never a
+ * sweep — `.display` and `.sub` are multi-line by design, and a wrapped
+ * `.photo-credit` is still a readable credit.
+ *
+ * In the reel that leaves exactly one: the URL, which lives in `.sub strong`.
+ * It is the only string on screen a viewer has to transcribe by hand, and a URL
+ * broken across two lines is a mistyped URL. The reel's selector is NOT
+ * `.cta-band .url` — that is the card system's furniture (APPEARANCE.singleLine
+ * in lib/contrast.mjs), and reel.css has no `.cta-band`, no `.url`, no `.pager`
+ * and no `.lockup`. Importing that list would have advertised a check running
+ * against five selectors this renderer never emits, i.e. a check that always
+ * finds nothing. Measured on live scene 05 before this was wired: a campaign
+ * path of `www.sojournkorea.net/private-tour/busan-full-day-with-driver` split
+ * across two visual line boxes with every other check reporting zero issues.
+ *
+ * Authors can opt anything else in with data-oneline, or out with
+ * data-allow-wrap — the same vocabulary render-cards.mjs uses, on purpose. */
+export const SINGLE_LINE = ['.sub strong'];
+
 export async function checkSafeArea(el, { label }) {
   const bad = await el.evaluate(
     (node, { safe, sel }) => {
@@ -38,6 +57,80 @@ export async function checkSafeArea(el, { label }) {
 
   return bad.map((b) => `${label}: SAFE AREA — ${b}`);
 }
+
+/* Line boxes are counted off Range rects around each target's own text, NOT
+ * el.getClientRects(): an inline `<strong>` inside a wrapping paragraph reports
+ * one client rect per line anyway, but a blockified or flex child reports a
+ * single box no matter how many lines the text inside occupies. A range over
+ * the text node returns one rect per line box, which is the thing we want to
+ * know. Same method as render-cards.mjs's APPEARANCE 1 check — the defect it
+ * was written for (QA T1: card 06's URL breaking mid-word) is the same defect. */
+export async function checkSingleLine(el, { label, selectors = SINGLE_LINE } = {}) {
+  const bad = await el.evaluate((node, sel) => {
+    const targets = new Map();
+    for (const t of node.querySelectorAll(sel.join(','))) targets.set(t, 'single-line by brand rule');
+    for (const t of node.querySelectorAll('[data-oneline]')) {
+      if (!targets.has(t)) targets.set(t, 'data-oneline');
+    }
+
+    const out = [];
+    for (const [t, why] of targets) {
+      if (t.hasAttribute('data-allow-wrap')) continue;
+      const cs = getComputedStyle(t);
+      if (cs.display === 'none' || cs.visibility === 'hidden') continue;
+
+      const tops = [];
+      let text = '';
+      for (const child of t.childNodes) {
+        if (child.nodeType !== Node.TEXT_NODE || !child.nodeValue.trim()) continue;
+        text += `${child.nodeValue.trim()} `;
+        const range = document.createRange();
+        range.selectNodeContents(child);
+        for (const r of range.getClientRects()) {
+          if (r.width < 0.5 || r.height < 0.5) continue;
+          // Cluster by line box: the same line can differ by a pixel or two
+          // between glyph runs, but a real wrap moves by a full line-height.
+          if (!tops.some((v) => Math.abs(v - r.top) < 4)) tops.push(r.top);
+        }
+      }
+      if (!text.trim()) continue;
+
+      const cls = t.className?.toString?.().trim().split(/\s+/).join('.') ?? '';
+      const who = `${t.tagName.toLowerCase()}${cls ? `.${cls}` : ''}`;
+      const snip = text.trim().slice(0, 56);
+
+      if (tops.length > 1) out.push(`${who} wrapped onto ${tops.length} lines (${why}) — "${snip}"`);
+      // white-space:nowrap does not fix a wrap, it converts it into a silent
+      // overrun of the element's own box. Inline elements report clientWidth 0
+      // and are skipped, which is correct: they have no box to overrun.
+      if (t.clientWidth > 0 && t.scrollWidth - t.clientWidth > 2) {
+        out.push(`${who} overruns its own box by ${t.scrollWidth - t.clientWidth}px (${why}) — "${snip}"`);
+      }
+    }
+    return out;
+  }, selectors);
+
+  return bad.map((b) => `${label}: LINES — ${b}`);
+}
+
+/* WHY THERE IS NO OVERFLOW CHECK HERE, and why that is a decision rather than
+ * an omission.
+ *
+ * The implementation plan's reuse table listed an overflow check alongside the
+ * contrast and photo checks, and it was never wired. Re-examined at the final
+ * review and deliberately left out: `.reel-scene` is a column flex box with
+ * `justify-content: flex-end`, so `.type` grows UPWARD. A headline too tall for
+ * its slot does not spill out of the bottom of the frame — it pushes its own
+ * top edge up into the 200px band, and checkSafeArea fires first, naming the
+ * element and the number of pixels. Measured on the live reel (04_reel.html,
+ * all five scenes): the tallest type block is 384px high and its top edge sits
+ * 864px clear of the 200px limit — the thinnest of the five margins. The type
+ * would have to more than triple in height before an overflow check had
+ * anything to say that checkSafeArea had not already said louder.
+ *
+ * What would change this: a scene layout that pins type to the TOP, or any use
+ * of position:absolute for the type block. Either breaks the "grows upward"
+ * property this rests on, and then an overflow check earns its place. */
 
 export async function checkWordCount(el, { label }) {
   const text = await el.evaluate((node) => node.querySelector('.display')?.textContent ?? '');
@@ -81,6 +174,85 @@ export async function checkTextTransform(el, { label }) {
       `card sentences verbatim; brand.css uppercases .display for a card-era reason that does not ` +
       `hold here, so dropping reel.css's reset changes how the approved copy reads.`,
   );
+}
+
+/**
+ * The scene ledger and the scene markup must name the SAME photograph.
+ *
+ * This is the seam the publication gate stands on. `render-reel.mjs` builds its
+ * `rights` list from `plan.scenes[].photo` — the JSON ledger — and hands that to
+ * `decideGate`, which is the only place a licence is ever judged. The frames,
+ * meanwhile, come from whatever `<img data-photo>` the HTML carries.
+ * `checkPhotos` inspects that img for manifest presence, slot, AI-generation
+ * and credit, but it has no licence rule at all. So until this check existed,
+ * the gate cleared one file while the encoder photographed another and nothing
+ * reconciled them.
+ *
+ * Reproduced before the fix: scene 01's `<img>` pointed at
+ * `place/gamcheon-hero-src.jpg` (CC BY-SA 2.0, in the manifest, on disk) while
+ * the plan still named the CC BY 4.0 file. With QA at PASS the run printed
+ * `GATE: 발행 가능`, raised zero issues, and wrote a publishable `reel.mp4`
+ * whose every scene-01 frame is a ShareAlike photograph — under a credit line
+ * that named the wrong photographer and the wrong licence. Five orphaned
+ * CC BY-SA 2.0 Gamcheon rows sit in the manifest today with names one character
+ * apart from the ones in use, so this is a typo away, not a conspiracy.
+ *
+ * It also closes a cache hole: `sceneKey` hashes the bytes of the PLAN's photo.
+ * If the HTML pointed somewhere else, replacing the bytes of the file actually
+ * being photographed changed no input to the key, and every run reported a hit
+ * on frames that no longer matched their source. Forcing the two to agree makes
+ * the hashed file and the rendered file the same file.
+ *
+ * Every `<img>` in the scene is checked, not just `.photo img`: an image
+ * smuggled in outside a `.photo` wrapper is invisible to checkPhotos, and that
+ * would be a photograph nobody cleared at all.
+ */
+export async function checkPlanPhoto(el, { label, planPhoto }) {
+  const imgs = await el.evaluate((node) =>
+    [...node.querySelectorAll('img')].map((img) => ({
+      key: img.dataset.photo ?? null,
+      src: img.getAttribute('src'),
+    })),
+  );
+
+  const issues = [];
+  const expected = planPhoto ?? null;
+
+  if (imgs.length === 0) {
+    if (expected) {
+      issues.push(
+        `${label}: PHOTO — 원장은 "${expected}"를 쓰라고 하는데 HTML에 <img>가 없다`,
+      );
+    }
+    return issues;
+  }
+
+  if (imgs.length > 1) {
+    // The gate clears one photo per scene because the plan records one. A
+    // second image is a second licence nobody was asked about.
+    issues.push(
+      `${label}: PHOTO — HTML에 <img>가 ${imgs.length}개다. 씬 원장은 사진 하나만 기재하므로 ` +
+        `나머지는 발행 게이트가 권리를 판정하지 않은 사진이 된다 — ${imgs.map((i) => i.key ?? i.src ?? '(no src)').join(', ')}`,
+    );
+  }
+
+  for (const img of imgs) {
+    if (!img.key) {
+      issues.push(
+        `${label}: PHOTO — <img src="${img.src ?? '(no src)'}">에 data-photo가 없어 원장과 대조할 수 없다`,
+      );
+      continue;
+    }
+    if (img.key !== expected) {
+      issues.push(
+        `${label}: PHOTO — 원장과 HTML이 다른 사진을 가리킨다. 원장 "${expected ?? '(없음)'}" vs HTML "${img.key}". ` +
+          `발행 게이트는 원장 쪽 라이선스를 보고, 프레임에 찍히는 것은 HTML 쪽이다 — 둘이 갈라지면 게이트가 ` +
+          `검사하지 않은 사진이 영상에 들어간다`,
+      );
+    }
+  }
+
+  return issues;
 }
 
 /* reel.css's only entrance treatment is `typein 400ms` with a 160ms stagger
