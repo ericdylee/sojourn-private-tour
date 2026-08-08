@@ -51,6 +51,38 @@ export async function checkWordCount(el, { label }) {
   return [`${label}: WORDS — headline is ${n} words, limit is ${MAX_HEADLINE_WORDS} ("${text.trim()}")`];
 }
 
+/* One property, deliberately. This is not a typography audit — it is a guard on
+ * a single rule that was found leaking and that nothing else could see.
+ *
+ * brand.css:109-111 sets `.display { text-transform: uppercase }` for the
+ * Anton-era card display. reel.css re-declares the whole face and has to reset
+ * it, because the reel's entire premise is that it re-typesets the SAME
+ * sentences the cards carry — sentence case is the copy QA approved, so
+ * uppercase is a rewrite, not a move. It also widens a line by ~23%: measured
+ * on the live reel, three of five headlines folded from two lines to three.
+ *
+ * It gets its own check because it is invisible to every other one. Uppercase
+ * is a perfectly legal layout: checkSafeArea and checkWordCount both return
+ * zero issues on the leaking variant (reviewer reproduced this by injecting
+ * `text-transform: uppercase !important` on the real page). So the defect does
+ * not block — it ships. This pipeline renders through CSS and Playwright rather
+ * than compositing in ffmpeg precisely so the result stays inspectable, and a
+ * defect that ships silently is the one case that argument does not cover. */
+export async function checkTextTransform(el, { label }) {
+  const bad = await el.evaluate((node) =>
+    [...node.querySelectorAll('.display')]
+      .map((d) => getComputedStyle(d).textTransform)
+      .filter((v) => v !== 'none'),
+  );
+
+  return bad.map(
+    (v) =>
+      `${label}: TYPE — .display is text-transform:${v}, expected none. The reel re-typesets the ` +
+      `card sentences verbatim; brand.css uppercases .display for a card-era reason that does not ` +
+      `hold here, so dropping reel.css's reset changes how the approved copy reads.`,
+  );
+}
+
 /* reel.css's only entrance treatment is `typein 400ms` with a 160ms stagger
  * (.delay-1), so 560ms is when the type is fully on screen. Sampling before
  * that measures a fade, not a background. Quartered so a short scene still

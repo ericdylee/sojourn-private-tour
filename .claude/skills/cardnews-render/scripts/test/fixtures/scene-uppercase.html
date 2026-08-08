@@ -1,0 +1,19 @@
+<!doctype html>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../../assets/reel.css">
+<style> body { margin: 0; } </style>
+<!-- reel.css의 `.reel-scene .display { text-transform: none }` 리셋이 지워진
+     상태를 그대로 흉내 낸다. 리셋이 없으면 brand.css의 카드용 규칙
+     `.display { text-transform: uppercase }`가 이긴다. 픽스처가 남의 파일에서
+     규칙을 지울 수는 없으므로, 같은 특정도의 규칙을 뒤에 놓아 캐스케이드로
+     이기게 했다 — 계산된 결과는 리셋을 지운 것과 동일하다.
+     이 씬은 대문자라는 것 말고는 완전히 정상이다. 그게 요점이다:
+     checkSafeArea도 checkWordCount도 여기서 0건을 낸다. -->
+<style> .reel-scene .display { text-transform: uppercase; } </style>
+<section class="reel-scene" style="--crop: 50% 50%">
+  <div class="scrim"></div>
+  <div class="type">
+    <h1 class="display">Those are <span class="accent">front doors</span></h1>
+    <p class="sub">People live in these alleys.</p>
+  </div>
+</section>

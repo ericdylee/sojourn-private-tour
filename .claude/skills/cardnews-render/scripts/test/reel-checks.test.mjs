@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
-import { checkSafeArea, checkWordCount } from '../lib/reel-checks.mjs';
+import { checkSafeArea, checkWordCount, checkTextTransform } from '../lib/reel-checks.mjs';
 
 async function scene(file) {
   const browser = await chromium.launch();
@@ -50,6 +50,42 @@ test('헤드라인이 아예 없는 씬을 잡는다', async () => {
   await browser.close();
   assert.ok(issues.length > 0, '.display가 없으면 잡아야 한다');
   assert.match(issues[0], /HEADLINE/);
+});
+
+// --- 대문자 누수 ---------------------------------------------------------
+//
+// reel.css의 `.reel-scene .display { text-transform: none }`은 기본값이 아니라
+// brand.css:109-111(카드용 Anton 시절 대문자 규칙)을 되돌리는 리셋이다. 그 줄이
+// 지워져도 다른 검사는 전부 조용하다 — 대문자는 합법적인 레이아웃이라 막히는
+// 게 아니라 틀린 채로 나간다. 아래 두 테스트가 그 침묵을 메운다.
+
+test('정상 씬은 text-transform 검사를 통과한다', async () => {
+  const { browser, el } = await scene('scenes-ok.html');
+  const issues = await checkTextTransform(el, { label: 'scene 01' });
+  await browser.close();
+  assert.deepEqual(issues, []);
+});
+
+test('리셋이 지워져 .display가 대문자로 계산되면 잡는다', async () => {
+  const { browser, el } = await scene('scene-uppercase.html');
+  const issues = await checkTextTransform(el, { label: 'scene 01' });
+  await browser.close();
+  assert.equal(issues.length, 1, `대문자 누수를 잡아야 한다 — 실제: ${JSON.stringify(issues)}`);
+  assert.match(issues[0], /TYPE — \.display is text-transform:uppercase/);
+  // 사유가 메시지 안에 있어야 한다. "무엇"만 말하면 다음 사람이 리셋을 다시
+  // 지운다 — 왜 그 줄이 거기 있는지가 코드가 아니라 출력에 남아야 한다.
+  assert.match(issues[0], /verbatim/);
+});
+
+test('같은 씬을 다른 검사에 걸면 아무도 못 잡는다 — 이 검사가 메우는 침묵', async () => {
+  // 이 테스트가 빨간불이 되면(= 다른 검사가 대문자를 잡기 시작하면)
+  // checkTextTransform은 중복이다. 그때까지는 유일한 방어선이다.
+  const { browser, el } = await scene('scene-uppercase.html');
+  const safe = await checkSafeArea(el, { label: 'scene 01' });
+  const words = await checkWordCount(el, { label: 'scene 01' });
+  await browser.close();
+  assert.deepEqual(safe, [], '세이프에어리어는 대문자를 못 본다');
+  assert.deepEqual(words, [], '단어 수는 대문자를 못 본다');
 });
 
 import { checkContrastOverTime } from '../lib/reel-checks.mjs';

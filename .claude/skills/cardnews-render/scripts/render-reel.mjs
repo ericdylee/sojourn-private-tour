@@ -26,7 +26,7 @@ import { assertFontsLoaded } from './lib/fonts.mjs';
 import { loadPhotoIndex, checkPhotos } from './lib/photos.mjs';
 import { loadReelPlan } from './lib/reel-plan.mjs';
 import { seekTo, openEncoder, captureScene, FPS } from './lib/reel-capture.mjs';
-import { checkSafeArea, checkWordCount, checkContrastOverTime } from './lib/reel-checks.mjs';
+import { checkSafeArea, checkWordCount, checkTextTransform, checkContrastOverTime } from './lib/reel-checks.mjs';
 import { decideGate } from './lib/reel-gate.mjs';
 import { sceneKey } from './lib/reel-cache.mjs';
 
@@ -183,6 +183,7 @@ for (const [i, spec] of plan.scenes.entries()) {
   // Checks run on the check page so nothing they touch reaches the frames.
   issues.push(...(await checkSafeArea(chkEl, { label })));
   issues.push(...(await checkWordCount(chkEl, { label })));
+  issues.push(...(await checkTextTransform(chkEl, { label })));
   issues.push(...(await checkPhotos(chkEl, { photoIndex, manifestPath, label })));
   const c = await checkContrastOverTime(checkPage, chkEl, { label, durationMs: spec.duration_ms });
   issues.push(...c.issues);
