@@ -1,6 +1,16 @@
 import { h, clear, toast, fmtDateTime, fmtDur, fmtCost } from '../ui.js'
 
-const STATUS_LABEL = { running: '실행 중', starting: '시작 중', done: '완료', error: '오류', stopped: '중단' }
+// 'interrupted' is not '완료'. A run that lost a tool call mid-flight ends with
+// the agent writing a tidy closing sentence and the SDK reporting success; the
+// list is where someone scanning past runs would otherwise never learn better.
+const STATUS_LABEL = {
+  running: '실행 중',
+  starting: '시작 중',
+  done: '완료',
+  error: '오류',
+  stopped: '중단',
+  interrupted: '중단 후 종료',
+}
 
 export async function render(root, ctx) {
   const { api, actions } = ctx

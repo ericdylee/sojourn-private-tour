@@ -250,6 +250,10 @@ body::before {
 .lamp[data-state='error'] .lamp__core {
   background: var(--coral);
 }
+.lamp[data-state='link'] .lamp__core {
+  background: var(--sand);
+  animation: pulse 1.6s ease-in-out infinite;
+}
 
 @keyframes pulse {
   0%,
@@ -725,7 +729,8 @@ textarea:disabled {
   color: var(--paper);
 }
 .status[data-s='error'],
-.status[data-s='stopped'] {
+.status[data-s='stopped'],
+.status[data-s='interrupted'] {
   color: var(--coral);
 }
 .status[data-s='starting'] {
@@ -766,11 +771,36 @@ textarea:disabled {
   gap: 12px;
   margin-bottom: 24px;
 }
+/* The card is a bounded column so the answer controls can never be pushed off
+ * the bottom by a long justification. Agents write as much context as they
+ * think the decision needs; that is the right instinct and it must not cost the
+ * operator the buttons. Reasoning scrolls in `.gate__body`; `.gate__foot` is
+ * pinned and always on screen. */
 .gate {
   border: 1px solid var(--coral);
   background: linear-gradient(180deg, rgba(255, 68, 56, 0.1), rgba(255, 68, 56, 0.03));
   padding: 18px 20px;
   animation: gateIn 0.32s cubic-bezier(0.2, 0.8, 0.25, 1) both;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 190px);
+}
+.gate__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.gate__foot {
+  flex: none;
+  /* Options can themselves be long; give the footer its own ceiling rather than
+   * let it swallow the card. */
+  max-height: 55vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-top: 12px;
+  margin-top: 4px;
+  border-top: 1px solid rgba(255, 68, 56, 0.3);
 }
 @keyframes gateIn {
   from {
@@ -843,6 +873,24 @@ textarea:disabled {
 .gate__free {
   display: grid;
   gap: 8px;
+}
+
+/* ---------- stream health ---------- */
+
+.linkbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding: 11px 14px;
+  border: 1px solid var(--sand);
+  background: rgba(245, 194, 75, 0.08);
+  color: var(--fg);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+.linkbar[hidden] {
+  display: none;
 }
 
 /* ---------- timeline ---------- */
@@ -1536,7 +1584,8 @@ textarea:disabled {
   animation: pulse 1.1s ease-in-out infinite;
 }
 .runrow__dot[data-s='error'],
-.runrow__dot[data-s='stopped'] {
+.runrow__dot[data-s='stopped'],
+.runrow__dot[data-s='interrupted'] {
   background: var(--coral);
 }
 .runrow__title {

@@ -116,6 +116,8 @@ function runSummary(run) {
     costUsd: run.costUsd,
     numTurns: run.numTurns,
     harness: run.harness,
+    interrupted: run.interrupted ?? null,
+    resultSubtype: run.resultSubtype ?? null,
     openGates: [...run.openGates.values()],
   }
 }

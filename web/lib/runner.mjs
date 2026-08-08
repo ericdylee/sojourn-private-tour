@@ -8,6 +8,55 @@ import * as store from './runs.mjs'
 const DEFAULT_MODEL = process.env.CAMPAIGN_MODEL || 'claude-opus-5'
 const MAX_TURNS = Number(process.env.CAMPAIGN_MAX_TURNS || 600)
 
+/**
+ * The SDK reports a cancelled tool call by replacing its result with this
+ * sentence. It is the only trace left: the stream keeps running, the lead
+ * writes a tidy closing sentence, and the final `result` message still says
+ * `subtype: "success"` — because from the model's point of view the turn did
+ * finish. Nothing above this line knows a step was skipped.
+ *
+ * Observed once for real (run 2026-08-06T23-21-05, seq 107): a `card-producer`
+ * delegation was cut mid-flight, the lead answered "위임을 중단했습니다", and the
+ * console filed the whole thing as `done` · `success`. The HTML had been edited
+ * and never re-rendered. Anyone reading the screen would have thought the card
+ * was finished.
+ */
+/* Anchored, and the whole result — not a substring search.
+ *
+ * The sentinel *replaces* the result, so it is the entire content. A substring
+ * test would also fire on a tool that merely printed the phrase, and this repo
+ * is now a place where that happens: the string is written down in this file,
+ * in `docs/PRD.md`, and in the recorded events under `web/.runs/`. An agent
+ * grepping any of those would file its own run as interrupted, and a status
+ * that cries wolf gets ignored exactly when it is right. */
+const INTERRUPTION = /^\[Request interrupted[^\]]*\]$/i
+
+/** True when a tool result is the SDK's cancellation sentinel rather than output. */
+export function isInterruptionResult(text) {
+  return INTERRUPTION.test(String(text ?? '').trim())
+}
+
+/**
+ * The one place that decides how a finished run is filed.
+ *
+ * Pure, and exported, because the interesting cases are the ones that are hard
+ * to stage live: an abort, a cancelled tool call, a turn limit. `done` has to
+ * mean "ran to the end with nothing skipped" or the status line is decoration.
+ *
+ * Precedence is deliberate — an explicit abort is the most specific thing we
+ * know, then a transport-level error, then a cancelled step, then whatever the
+ * SDK called the ending.
+ */
+export function resolveFinalStatus({ aborted, interrupted, resultSubtype, resultIsError } = {}) {
+  if (aborted) return 'stopped'
+  if (resultIsError) return 'error'
+  if (interrupted) return 'interrupted'
+  // A `result` message arrived and named something other than a clean finish
+  // (`error_max_turns`, `error_during_execution`, …). Trust it over `done`.
+  if (resultSubtype && resultSubtype !== 'success') return 'interrupted'
+  return 'done'
+}
+
 /** Trim a value for display without destroying the useful part of a path. */
 function clip(value, max = 220) {
   const s = typeof value === 'string' ? value : JSON.stringify(value ?? '')
@@ -71,6 +120,11 @@ export class Run {
     this.numTurns = 0
     this.sessionId = null
     this.harness = null
+    /** @type {{at:number, tool:string|null, actor:string}|null} first cancelled step, if any */
+    this.interrupted = null
+    /** What the SDK called the ending — kept raw; `status` is our reading of it. */
+    this.resultSubtype = null
+    this.resultIsError = false
 
     this.seq = 0
     this.events = []
@@ -81,6 +135,8 @@ export class Run {
     this.abort = new AbortController()
     /** tool_use_id → actor that owns it, so tool results land in the right lane */
     this.toolOwner = new Map()
+    /** tool_use_id → tool name, so a cancelled result can name what was cut */
+    this.toolName = new Map()
     /** tool_use_ids belonging to the gate server — rendered as cards, not tool rows */
     this.gateToolUses = new Set()
 
@@ -115,6 +171,8 @@ export class Run {
       numTurns: this.numTurns,
       eventCount: this.events.length,
       harness: this.harness,
+      interrupted: this.interrupted,
+      resultSubtype: this.resultSubtype,
     })
   }
 
@@ -184,6 +242,12 @@ export class Run {
           this.push({ type: 'agent.thinking', actor })
         } else if (block.type === 'tool_use') {
           this.toolOwner.set(block.id, actor)
+          this.toolName.set(
+            block.id,
+            block.name === 'Agent' || block.name === 'Task'
+              ? `${block.name} → ${block.input?.subagent_type || '?'}`
+              : block.name,
+          )
           if (block.name?.startsWith('mcp__gate__')) {
             this.gateToolUses.add(block.id)
             continue // rendered as an approval card via gate.open
@@ -210,13 +274,29 @@ export class Run {
         const raw = Array.isArray(block.content)
           ? block.content.map((c) => c.text || `[${c.type}]`).join(' ')
           : block.content
+        const actor = this.toolOwner.get(block.tool_use_id) || 'lead'
         this.push({
           type: 'tool.result',
-          actor: this.toolOwner.get(block.tool_use_id) || 'lead',
+          actor,
           toolUseId: block.tool_use_id,
           ok: !block.is_error,
           preview: clip(raw, 400),
         })
+        // A cancelled step leaves no other trace. Record it now, while we still
+        // know which tool it was — by the time the run ends the SDK will call
+        // the whole thing a success.
+        if (!this.interrupted && isInterruptionResult(raw)) {
+          this.interrupted = {
+            at: Date.now(),
+            tool: this.toolName.get(block.tool_use_id) || null,
+            actor,
+          }
+          this.push({
+            type: 'notice',
+            level: 'warn',
+            text: `도구 호출이 중단됐다${this.interrupted.tool ? ` (${this.interrupted.tool})` : ''}. 이 실행은 끝까지 가지 않았다 — 산출물이 미완일 수 있다.`,
+          })
+        }
       }
       return
     }
@@ -225,6 +305,8 @@ export class Run {
       this.costUsd = msg.total_cost_usd ?? this.costUsd
       this.numTurns = msg.num_turns ?? this.numTurns
       this.result = typeof msg.result === 'string' ? msg.result : null
+      this.resultSubtype = msg.subtype ?? null
+      this.resultIsError = Boolean(msg.is_error)
       this.push({
         type: 'run.result',
         ok: !msg.is_error,
@@ -289,7 +371,12 @@ export class Run {
 
       for await (const msg of stream) this.ingest(msg)
 
-      this.status = this.abort.signal.aborted ? 'stopped' : 'done'
+      this.status = resolveFinalStatus({
+        aborted: this.abort.signal.aborted,
+        interrupted: Boolean(this.interrupted),
+        resultSubtype: this.resultSubtype,
+        resultIsError: this.resultIsError,
+      })
     } catch (err) {
       if (this.abort.signal.aborted) {
         this.status = 'stopped'
@@ -302,7 +389,13 @@ export class Run {
       this.gate.cancelAll('실행이 종료됐다.')
       this.openGates.clear()
       this.endedAt = Date.now()
-      this.push({ type: 'run.ended', status: this.status, costUsd: this.costUsd })
+      this.push({
+        type: 'run.ended',
+        status: this.status,
+        costUsd: this.costUsd,
+        interrupted: this.interrupted,
+        resultSubtype: this.resultSubtype,
+      })
       this.persistMeta()
       for (const res of this.subscribers) {
         try {

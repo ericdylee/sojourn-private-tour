@@ -8,6 +8,17 @@ const TOOL_CLASS = {
   Edit: 'tool-tag--write',
 }
 
+const STATUS_LABEL = {
+  running: '실행 중',
+  starting: '시작 중',
+  done: '완료',
+  error: '오류',
+  stopped: '중단됨',
+  // Not '완료'. The run stopped short of the end and the agent's own closing
+  // sentence will not say so.
+  interrupted: '중단 후 종료',
+}
+
 export async function render(root, ctx) {
   const { state, actions, on } = ctx
 
@@ -77,6 +88,7 @@ export async function render(root, ctx) {
   )
 
   const harnessEl = h('div', { class: 'harness' })
+  const linkEl = h('div', { class: 'linkbar', hidden: true })
   const gatesEl = h('div', { class: 'gates' })
   const timelineEl = h('div', { class: 'timeline' })
   const lanesEl = h('div', { class: 'lanes' })
@@ -99,7 +111,7 @@ export async function render(root, ctx) {
         { class: 'live' },
         // Gates first: an agent blocked on a human decision is the only thing
         // on this screen that is actually waiting on the reader.
-        h('div', { class: 'live__main' }, gatesEl, harnessEl, timelineEl, followWrap),
+        h('div', { class: 'live__main' }, linkEl, gatesEl, harnessEl, timelineEl, followWrap),
         h(
           'aside',
           { class: 'live__side' },
@@ -134,11 +146,32 @@ export async function render(root, ctx) {
   function paintStatus() {
     const s = state.status || state.run.status || 'starting'
     statusEl.dataset.s = s
-    statusEl.textContent = { running: '실행 중', starting: '시작 중', done: '완료', error: '오류', stopped: '중단됨' }[s] || s
+    statusEl.textContent = STATUS_LABEL[s] || s
     stopBtn.disabled = !(s === 'running' || s === 'starting') || state.replay
     stopBtn.style.visibility = stopBtn.disabled ? 'hidden' : 'visible'
     eventsEl.textContent = state.events.length
     costEl.textContent = state.costUsd ? fmtCost(state.costUsd) : '—'
+  }
+
+  /**
+   * A live run whose feed has died looks exactly like a live run that has gone
+   * quiet — same status pill, same frozen timeline. Say which one it is.
+   */
+  function paintLink() {
+    if (state.replay || state.link !== 'retry') {
+      linkEl.hidden = true
+      return
+    }
+    linkEl.hidden = false
+    clear(linkEl)
+    linkEl.append(
+      h('span', { class: 'spinner' }),
+      h(
+        'span',
+        null,
+        '연결이 끊겨 재연결 중입니다. 실행은 서버에서 계속되고 있고, 승인 요청이 있으면 다시 연결되는 즉시 뜹니다.',
+      ),
+    )
   }
 
   function paintElapsed() {
@@ -210,15 +243,33 @@ export async function render(root, ctx) {
     for (const gate of state.gates.values()) gatesEl.append(gateCard(gate))
   }
 
+  /**
+   * An approval card is the one thing on this screen that is waiting on the
+   * reader, so its buttons have to be reachable without hunting for them.
+   *
+   * They were not. The agents write long justifications — the real one that
+   * exposed this ran to about forty lines of context — and the card grew with
+   * it, pushing 승인/반려 below the fold. The buttons did not look disabled or
+   * missing; they looked like they did not exist.
+   *
+   * So the card is now a fixed-height column: the reasoning scrolls inside it,
+   * the controls sit in a footer pinned to the bottom of the card. Long context
+   * costs scrolling inside the card, never the ability to answer.
+   */
   function gateCard(gate) {
     const kicker = { choice: '선택 필요', approval: '승인 필요', text: '입력 필요' }[gate.kind] || '응답 필요'
+    const body = h('div', { class: 'gate__body' })
+    const foot = h('div', { class: 'gate__foot' })
     const card = h(
       'div',
       { class: 'gate' },
       h('div', { class: 'gate__kicker' }, kicker),
       h('div', { class: 'gate__q' }, gate.question || gate.title || '(질문 없음)'),
-      (gate.context || gate.detail) && h('div', { class: 'gate__ctx' }, gate.context || gate.detail),
+      body,
+      foot,
     )
+    const ctx = gate.context || gate.detail
+    if (ctx) body.append(h('div', { class: 'gate__ctx' }, ctx))
 
     const send = async (value) => {
       card.querySelectorAll('button, input').forEach((n) => (n.disabled = true))
@@ -226,7 +277,9 @@ export async function render(root, ctx) {
         await actions.answerGate(gate.id, value)
       } catch (err) {
         toast(err.message, 'bad')
-        card.querySelectorAll('button, input').forEach((n) => (n.disabled = false))
+        // answerGate has already re-read the server's open gates; repaint so a
+        // card for a gate that is gone does not sit there taking clicks.
+        paintGates()
       }
     }
 
@@ -242,15 +295,14 @@ export async function render(root, ctx) {
           ),
         )
       })
-      card.append(opts)
       const free = h('input', { type: 'text', placeholder: '또는 직접 입력…' })
       free.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && free.value.trim()) send(free.value.trim())
       })
-      card.append(h('div', { class: 'gate__free' }, free))
+      foot.append(opts, h('div', { class: 'gate__free' }, free))
     } else if (gate.kind === 'approval') {
       const reason = h('input', { type: 'text', placeholder: '반려 사유 (반려할 때만)' })
-      card.append(
+      foot.append(
         h('div', { class: 'gate__free' }, reason),
         h(
           'div',
@@ -271,7 +323,7 @@ export async function render(root, ctx) {
       const input = h('input', { type: 'text', placeholder: gate.placeholder || '응답을 입력하세요' })
       const submit = () => input.value.trim() && send(input.value.trim())
       input.addEventListener('keydown', (e) => e.key === 'Enter' && submit())
-      card.append(
+      foot.append(
         h('div', { class: 'gate__free' }, input),
         h(
           'div',
@@ -424,12 +476,20 @@ export async function render(root, ctx) {
       case 'run.ended':
         return h(
           'div',
-          { class: 'ev ev--end', style: lane },
+          { class: `ev ev--end ${ev.status === 'interrupted' ? 'is-err' : ''}`, style: lane },
           h(
             'div',
             { class: 'ev__body' },
-            `실행 종료 · ${ev.status} · ${fmtCost(ev.costUsd)}`,
+            `실행 종료 · ${STATUS_LABEL[ev.status] || ev.status} · ${fmtCost(ev.costUsd)}`,
           ),
+          ev.status === 'interrupted' &&
+            h(
+              'div',
+              { class: 'ev__body' },
+              ev.interrupted?.tool
+                ? `${ev.interrupted.tool} 호출이 중단된 뒤 종료됐다. 산출물이 미완일 수 있으니 파일을 직접 확인하라.`
+                : '끝까지 가지 않고 종료됐다. 산출물이 미완일 수 있으니 파일을 직접 확인하라.',
+            ),
         )
 
       case 'run.stopping':
@@ -450,6 +510,7 @@ export async function render(root, ctx) {
     clear(timelineEl)
     for (const ev of state.events) appendEvent(ev)
     paintHarness()
+    paintLink()
     paintGates()
     paintLanes()
     paintSide()
@@ -481,6 +542,14 @@ export async function render(root, ctx) {
     if (follow) stage.scrollTo({ top: stage.scrollHeight, behavior: 'auto' })
   })
   const offReset = on('run-reset', paintAll)
+  const offLink = on('link', paintLink)
+  // The server just told us what is actually open. That answer outranks
+  // whatever the event stream left on screen.
+  const offSynced = on('synced', () => {
+    paintGates()
+    paintStatus()
+    paintLink()
+  })
 
   const ticker = setInterval(paintElapsed, 1000)
 
@@ -488,6 +557,8 @@ export async function render(root, ctx) {
     destroy() {
       offEvent()
       offReset()
+      offLink()
+      offSynced()
       clearInterval(ticker)
       stage.removeEventListener('scroll', onScroll)
     },
