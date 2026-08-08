@@ -56,7 +56,74 @@ test('씬이 6개 이상이면 issue를 낸다', async () => {
     })),
   }));
   const { issues } = await loadReelPlan(p);
-  assert.ok(issues.some((i) => /4~5/.test(i)), `씬 수 상한을 잡아야 한다 — ${JSON.stringify(issues)}`);
+  // 메시지가 "4~5개로 맞춰라"라고만 하던 시절엔, 3씬 원장이 아무 말 없이
+  // 통과하는데도 이 단정이 초록이었다 — 안내와 실제 통과 범위가 달랐다.
+  // 실제로 강제되는 범위를 단정한다.
+  assert.ok(
+    issues.some((i) => /3~5개만 통과한다/.test(i)),
+    `실제 통과 범위를 밝혀야 한다 — ${JSON.stringify(issues)}`,
+  );
+});
+
+test('씬 3개는 통과한다 — 메시지가 말하는 하한이 코드의 하한과 같다', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'plan-'));
+  const p = join(dir, 'plan.json');
+  await writeFile(p, JSON.stringify({
+    campaign_id: 'x', fps: 30,
+    scenes: Array.from({ length: 3 }, (_, i) => ({
+      n: i + 1, role: 'body', headline: 'Two words', support: '', photo: 'a.jpg', crop: '50% 50%', duration_ms: null,
+    })),
+  }));
+  const { issues } = await loadReelPlan(p);
+  assert.deepEqual(issues, [], `3씬은 의도적으로 허용된다 — ${JSON.stringify(issues)}`);
+});
+
+// --- fps 검증 ------------------------------------------------------------
+//
+// fps는 captureScene의 프레임 수(duration/1000 * fps)와 씬 캐시 키 양쪽에
+// 들어가는데 아무도 검사하지 않았다. duration_ms는 Task 5부터 타입 검사를
+// 받았지만 같은 원장의 fps는 그대로 통과했다.
+
+test('fps가 0이면 issue를 낸다 — 프레임 0장짜리 씬이 만들어진다', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'plan-'));
+  const p = join(dir, 'plan.json');
+  await writeFile(p, JSON.stringify({
+    campaign_id: 'x', fps: 0,
+    scenes: Array.from({ length: 3 }, (_, i) => ({
+      n: i + 1, role: 'body', headline: 'Two words', support: '', photo: 'a.jpg', crop: '50% 50%', duration_ms: 2000,
+    })),
+  }));
+  const { plan, issues } = await loadReelPlan(p);
+  assert.ok(issues.some((i) => /fps/.test(i)), `fps 0을 잡아야 한다 — ${JSON.stringify(issues)}`);
+  assert.equal(plan.fps, undefined, '나쁜 값을 남기면 호출자의 ?? FPS 폴백이 안 먹는다');
+});
+
+test('fps가 문자열이면 issue를 낸다 — 산술은 조용히 통과하고 해시는 달라진다', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'plan-'));
+  const p = join(dir, 'plan.json');
+  await writeFile(p, JSON.stringify({
+    campaign_id: 'x', fps: '30',
+    scenes: Array.from({ length: 3 }, (_, i) => ({
+      n: i + 1, role: 'body', headline: 'Two words', support: '', photo: 'a.jpg', crop: '50% 50%', duration_ms: 2000,
+    })),
+  }));
+  const { plan, issues } = await loadReelPlan(p);
+  assert.ok(issues.some((i) => /fps/.test(i)), `fps 문자열을 잡아야 한다 — ${JSON.stringify(issues)}`);
+  assert.equal(plan.fps, undefined);
+});
+
+test('fps가 정상이면 아무 말도 하지 않는다', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'plan-'));
+  const p = join(dir, 'plan.json');
+  await writeFile(p, JSON.stringify({
+    campaign_id: 'x', fps: 30,
+    scenes: Array.from({ length: 3 }, (_, i) => ({
+      n: i + 1, role: 'body', headline: 'Two words', support: '', photo: 'a.jpg', crop: '50% 50%', duration_ms: 2000,
+    })),
+  }));
+  const { plan, issues } = await loadReelPlan(p);
+  assert.deepEqual(issues, [], JSON.stringify(issues));
+  assert.equal(plan.fps, 30);
 });
 
 test('duration_ms가 0이면 issue를 낸다', async () => {

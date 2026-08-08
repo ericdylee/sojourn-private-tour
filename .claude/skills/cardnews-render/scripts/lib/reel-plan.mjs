@@ -9,9 +9,18 @@ const TAIL_MS = 500;
 const MIN_MS = 2000;
 const MAX_MS = 4500;
 
-/* 4-5 scenes, not 6. Six cards at 15-25s is ~3s per scene with a two-line
- * headline, which is tight on a vertical screen. Which card to drop is an
- * editorial call made in step 1 and approved by a human. */
+/* Aim for 4-5 scenes, not 6. Six cards at 15-25s is ~3s per scene with a
+ * two-line headline, which is tight on a vertical screen. Which card to drop is
+ * an editorial call made in step 1 and approved by a human.
+ *
+ * The ENFORCED floor is 3, not 4, and the message below says so. Three is a
+ * deliberate Task 5 decision: a three-scene reel is a legitimate shape (a hook,
+ * a turn and a CTA is a complete argument) and the schema loader is the wrong
+ * place to overrule an editorial call that a human approves anyway. What the
+ * loader is for is catching the shapes that are certainly wrong — 0, 1, 2 or 6+
+ * scenes. The message used to read "4~5개로 맞춰라 (허용 3~5)", which told a
+ * reader the rule was 4-5 while the code let 3 through silently; if the
+ * guidance and the guard disagree, the file should say which one is the guard. */
 const MAX_SCENES = 5;
 const MIN_SCENES = 3;
 
@@ -60,7 +69,25 @@ export async function loadReelPlan(path) {
   plan.scenes = scenes;
 
   if (scenes.length > MAX_SCENES || scenes.length < MIN_SCENES) {
-    issues.push(`씬이 ${scenes.length}개다 — 4~5개로 맞춰라 (허용 ${MIN_SCENES}~${MAX_SCENES})`);
+    issues.push(
+      `씬이 ${scenes.length}개다 — ${MIN_SCENES}~${MAX_SCENES}개만 통과한다 (권장 4~5개, ${MIN_SCENES}개는 통과하되 짧다)`,
+    );
+  }
+
+  /* fps feeds captureScene (frames = duration/1000 * fps) and the scene cache
+   * key, and neither notices a bad value: fps 0 produces a zero-frame scene
+   * that ffmpeg still finalises into a file, and a string coerces silently
+   * through the arithmetic while hashing as a distinct key. duration_ms has
+   * been type-checked since Task 5; fps rode along unchecked in the same
+   * ledger. Left undefined on failure so render-reel.mjs's `plan.fps ?? FPS`
+   * fallback is a sane 30 rather than the bad value — though the issue above
+   * stops the run either way. */
+  if (plan.fps !== undefined && plan.fps !== null) {
+    const validFps = typeof plan.fps === 'number' && Number.isFinite(plan.fps) && plan.fps > 0;
+    if (!validFps) {
+      issues.push(`fps는 양수여야 하는데 ${JSON.stringify(plan.fps)}이다`);
+      plan.fps = undefined;
+    }
   }
 
   for (const s of scenes) {
