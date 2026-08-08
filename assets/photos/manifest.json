@@ -205,6 +205,60 @@
       "rights": "licensed:wikimedia/CC BY 4.0 — S h y numis",
       "shot_at": null,
       "note": "커먼즈 'Gamcheon Culture Village March 30 2024 3.jpg'(5328x4000)에서 1:1 4000px 크롭 후 2160px. 카드 02 전용 — gamcheon-valley-blossom은 벚꽃 띠가 헤드라인 자리에 걸려 오렌지 액센트가 2.06까지 떨어졌다. 이 컷은 상단이 어두운 능선이라 액센트를 버틴다."
+    },
+    {
+      "file": "place/jagalchi-squid-stall.jpg",
+      "slot": "place",
+      "subject": "Octopus and squid laid out across a Jagalchi stall, a gloved hand at the edge of the frame",
+      "ai_generated": false,
+      "rights": "licensed:wikimedia/CC BY 3.0 — Czolya",
+      "shot_at": null,
+      "note": "커먼즈 'Jagalchi Market - Squid Stall.JPG'(4752x3168). 매니페스트 wanted의 '좌판 위 해산물 클로즈업'에 대응하는 라이선스 컷 — 자사 촬영 요청은 유효하게 남는다. 인물 없음."
+    },
+    {
+      "file": "place/jagalchi-market-interior.jpg",
+      "slot": "place",
+      "subject": "The main hall under warm lamps, red tanks running down both sides of a wet aisle",
+      "ai_generated": false,
+      "rights": "licensed:wikimedia/CC BY 2.0 — Kok Leng Yeo",
+      "shot_at": null,
+      "note": "커먼즈 'Jagalchi Market, Busan, South Korea.jpg'(2999x2249). 블로그 히어로 후보. 프레임의 인물은 전부 뒷모습이거나 원거리."
+    },
+    {
+      "file": "place/jagalchi-shellfish-bowls.jpg",
+      "slot": "place",
+      "subject": "Bowls of abalone, conch, sea squirt and sea cucumber arranged on a stall",
+      "ai_generated": false,
+      "rights": "licensed:wikimedia/CC BY 2.0 — Kok Leng Yeo",
+      "shot_at": null,
+      "note": "커먼즈 'Jagalchi Market Display.jpg'(2304x3072, 세로). 인물 없음."
+    },
+    {
+      "file": "place/jagalchi-dried-goods-sign.jpg",
+      "slot": "place",
+      "subject": "The Dried Sea Products Zone sign in Korean, English, Japanese and Chinese, above a stairway down into the stalls",
+      "ai_generated": false,
+      "rights": "licensed:wikimedia/CC BY 3.0 — kajikawa",
+      "shot_at": null,
+      "note": "커먼즈 'Jagalchi Market - panoramio (2).jpg'(2048x1536). 4개 국어(한·영·일·중) 안내판이라 방문자 동선 설명에 쓴다."
+    },
+    {
+      "file": "place/jagalchi-station-entrance.jpg",
+      "slot": "place",
+      "subject": "Exit 10 of Jagalchi station on Busan Metro Line 1, at street level",
+      "ai_generated": false,
+      "rights": "licensed:wikimedia/CC BY 3.0 — LERK",
+      "shot_at": null,
+      "note": "커먼즈 'Busan-subway-110-Jagalchi-station-10-entrance.jpg'(3648x2736). '가는 법' 절 전용."
+    },
+    {
+      "file": "place/jagalchi-harbour-above.jpg",
+      "slot": "place",
+      "subject": "Busan harbour seen from above, the fish market quarter along the waterfront",
+      "ai_generated": false,
+      "rights": "licensed:wikimedia/public domain — Michael Hänel",
+      "shot_at": null,
+      "note": "커먼즈 'Busan Hafen Fischmarkt 2.jpg'(3264x1840). 퍼블릭 도메인이라 표기 의무 없음. 캡션이 시장 건물을 특정한다고 말하면 안 된다 — 프레임에서 시장을 짚을 수 없다. 항구와 물가라는 배경까지만 주장한다."
     }
   ],
   "wanted": [
