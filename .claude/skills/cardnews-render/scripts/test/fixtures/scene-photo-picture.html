@@ -1,0 +1,22 @@
+<!doctype html>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../../assets/reel.css">
+<style> body { margin: 0; background: #222; } </style>
+
+<!-- 같은 우회의 <picture> 판. 여기서는 <img>에 srcset 속성조차 없다 —
+     선택은 형제 <source>가 한다. img 하나만 들여다보는 검사는 이걸 볼 수 없다. -->
+<section class="reel-scene" style="--crop: 50% 45%; --dur: 3000ms">
+  <div class="photo photo-bg m-kenburns">
+    <picture>
+      <source srcset="../../../../../../assets/photos/place/gamcheon-hero-src.jpg">
+      <img src="../../../../../../assets/photos/place/gamcheon-sky-vista.jpg"
+           data-photo="place/gamcheon-sky-vista.jpg" data-slot="place" alt="">
+    </picture>
+  </div>
+  <div class="scrim"></div>
+  <p class="photo-credit">Photo: VaneTrz20 / Wikimedia · CC0</p>
+  <div class="type">
+    <h1 class="display m-type-in">A village that <span class="accent">climbs</span></h1>
+    <p class="sub m-type-in delay-1">Gamcheon Culture Village, Busan</p>
+  </div>
+</section>

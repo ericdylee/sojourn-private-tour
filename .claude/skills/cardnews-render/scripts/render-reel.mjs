@@ -104,20 +104,27 @@ const { photoIndex, manifestPath } = await loadPhotoIndex();
 // then re-navigating to capture: a two-phase render for no extra safety, given
 // that checkPlanPhoto (below) makes a plan/DOM disagreement a hard ISSUE.
 //
-// What that check buys, stated no wider than it is true: for every <img> inside
-// a `section.reel-scene` the plan has a scene for, both `data-photo` AND the
-// resolved `src` must name the file the plan names — so a scene where the judged
-// file and the photographed file differ never reaches the encoder. What it does
-// not cover: markup outside those sections, a scene the plan does not list (the
-// count mismatch below is itself an ISSUE, so that run fails too), and CSS
-// background images, which are not <img> and which nothing here inspects.
+// What that check buys, stated no wider than it is true: for every <img> element
+// inside a `section.reel-scene` the plan has a scene for, `data-photo` and the
+// browser's resolved fetch (`currentSrc`) must both name the file the plan names,
+// and responsive selection (`srcset`, `<picture><source>`) is refused outright.
 //
-// An earlier version of this comment said the two sources were "provably the
-// same file" while the check compared `data-photo` alone. The src hole it missed
-// was reproduced end to end: only the src moved to an orphaned CC BY-SA 2.0 row,
-// and the run printed 발행 가능, raised zero issues and wrote a publishable
-// reel.mp4 of a ShareAlike photograph. A guarantee written wider than the code
-// is worse than no comment — the next person to touch photos believes it.
+// It does NOT establish that the frames contain only cleared photography. Not
+// covered, and none of it is inspected anywhere else either: CSS
+// `background-image`, <canvas>, SVG <image>, markup outside those sections, and
+// any scene the plan does not list — that last one fails the run through the
+// scene-count ISSUE below rather than through this check. Anything reaching the
+// encoder by one of those routes is unjudged.
+//
+// This comment has been narrowed twice, both times after the code under it was
+// found to be narrower still. It once said the two sources were "provably the
+// same file" while the check compared `data-photo` alone; a second version said
+// "a scene where the judged file and the photographed file differ never reaches
+// the encoder" while the check compared the `src` ATTRIBUTE, which `srcset`
+// walks straight past. Both holes were reproduced end to end — 발행 가능, zero
+// issues, a publishable reel.mp4 of a CC BY-SA 2.0 photograph. A guarantee
+// written wider than the code is worse than no comment: the next person to touch
+// photos believes it, and the belief is what the exploit needs.
 const rights = plan.scenes.map((s, i) => ({
   scene: `scene ${String(i + 1).padStart(2, '0')}`,
   photo: s.photo ?? null,

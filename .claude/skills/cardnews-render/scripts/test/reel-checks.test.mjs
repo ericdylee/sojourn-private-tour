@@ -163,10 +163,13 @@ test('원장과 HTML의 data-photo가 다르면 잡는다 — 게이트가 검�
     photosRoot: PHOTOS_ROOT,
   });
   await browser.close();
-  assert.ok(issues.length > 0, `불일치를 잡아야 한다 — 실제: ${JSON.stringify(issues)}`);
+  // 정확히 2건이다 — data-photo 대조 1건 + 실제로 받아오는 파일 대조 1건.
+  // `> 0`으로 느슨하게 두면 둘 중 하나가 죽어도 이 테스트는 계속 초록이다.
+  assert.equal(issues.length, 2, `두 갈래가 다 울려야 한다 — 실제: ${JSON.stringify(issues)}`);
   assert.match(issues[0], /원장과 HTML이 다른 사진을 가리킨다/);
   assert.match(issues[0], /gamcheon-hero-src\.jpg/, `원장 쪽 파일명을 밝혀야 한다 — ${issues[0]}`);
   assert.match(issues[0], /gamcheon-sky-vista\.jpg/, `HTML 쪽 파일명을 밝혀야 한다 — ${issues[0]}`);
+  assert.match(issues[1], /원장과 실제로 찍히는 파일이 다르다/);
 });
 
 // 최종 리뷰가 end-to-end로 재현한 그 경우다. src만 고아 SA 파일로 옮기고
@@ -192,6 +195,75 @@ test('data-photo가 원장과 같아도 src가 다른 파일이면 잡는다 —
   assert.equal(issues.length, 1, `src 불일치를 잡아야 한다 — 실제: ${JSON.stringify(issues)}`);
   assert.match(issues[0], /원장과 실제로 찍히는 파일이 다르다/);
   assert.match(issues[0], /gamcheon-hero-src\.jpg/, `찍히는 파일을 밝혀야 한다 — ${issues[0]}`);
+});
+
+// srcset / <picture>. src·data-photo·원장이 전부 일치하는데도 브라우저가 다른
+// 파일을 받아온다 — 최종 리뷰가 실제 릴스에서 재현했다(발행 가능·이슈 0건·
+// 배너 없는 13,495,269바이트 reel.mp4, 전 프레임 CC BY-SA 사진).
+// 두 갈래가 다 울려야 한다: 반응형 선택 자체의 거부 1건 + currentSrc 대조 1건.
+test('srcset이 다른 파일을 받아오면 잡는다 — src가 원장과 일치해도', async () => {
+  const { browser, el } = await scene('scene-photo-srcset.html');
+  const painted = await el.evaluate((n) => {
+    const img = n.querySelector('img');
+    return { file: img.currentSrc.split('/').pop(), attr: img.getAttribute('src').split('/').pop(), w: img.naturalWidth };
+  });
+  const issues = await checkPlanPhoto(el, {
+    label: 'scene 01',
+    planPhoto: 'place/gamcheon-sky-vista.jpg',
+    photosRoot: PHOTOS_ROOT,
+  });
+  await browser.close();
+  // 픽스처가 실제로 우회를 성립시키는지 먼저 고정한다.
+  assert.equal(painted.attr, 'gamcheon-sky-vista.jpg', 'src 속성은 원장과 일치해야 한다');
+  assert.equal(painted.file, 'gamcheon-hero-src.jpg', '실제로 받아오는 것은 SA 파일이어야 한다');
+  assert.ok(painted.w > 0, '픽스처의 사진이 실제로 로드돼야 한다');
+  assert.equal(issues.length, 2, `거부 + 파일 불일치 2건이어야 한다 — 실제: ${JSON.stringify(issues)}`);
+  assert.match(issues[0], /반응형 이미지 선택을 쓴다/);
+  assert.match(issues[0], /srcset=/, `무엇이 붙었는지 밝혀야 한다 — ${issues[0]}`);
+  assert.match(issues[1], /원장과 실제로 찍히는 파일이 다르다/);
+  assert.match(issues[1], /gamcheon-hero-src\.jpg/, `찍히는 파일을 밝혀야 한다 — ${issues[1]}`);
+});
+
+// <img>에는 srcset 속성조차 없다. 선택은 형제 <source>가 한다 —
+// img 하나만 들여다보는 검사는 구조적으로 못 본다.
+test('<picture><source>가 다른 파일을 받아오면 잡는다', async () => {
+  const { browser, el } = await scene('scene-photo-picture.html');
+  const painted = await el.evaluate((n) => {
+    const img = n.querySelector('img');
+    return { file: img.currentSrc.split('/').pop(), srcset: img.getAttribute('srcset'), w: img.naturalWidth };
+  });
+  const issues = await checkPlanPhoto(el, {
+    label: 'scene 01',
+    planPhoto: 'place/gamcheon-sky-vista.jpg',
+    photosRoot: PHOTOS_ROOT,
+  });
+  await browser.close();
+  assert.equal(painted.srcset, null, '<img> 자체에는 srcset이 없어야 한다 — 그게 이 경우의 요점이다');
+  assert.equal(painted.file, 'gamcheon-hero-src.jpg');
+  assert.ok(painted.w > 0, '픽스처의 사진이 실제로 로드돼야 한다');
+  assert.equal(issues.length, 2, `거부 + 파일 불일치 2건이어야 한다 — 실제: ${JSON.stringify(issues)}`);
+  assert.match(issues[0], /반응형 이미지 선택을 쓴다/);
+  assert.match(issues[0], /<source>/, `<source>를 지목해야 한다 — ${issues[0]}`);
+  assert.match(issues[1], /원장과 실제로 찍히는 파일이 다르다/);
+});
+
+// 반응형 선택은 "가리키는 파일이 맞아도" 거부한다. 선택 결과는 캡처 환경의
+// 성질이고 캐시 키에 들어가지 않으므로, 오늘 맞은 것이 내일 맞다는 보장이 없다.
+test('srcset이 원장과 같은 파일을 가리켜도 거부한다', async () => {
+  const { browser, page } = await scene('scenes-ok.html');
+  await page.evaluate(() => {
+    const img = document.querySelector('img');
+    img.setAttribute('srcset', `${img.getAttribute('src')} 1x`);
+  });
+  const el = await page.$('section.reel-scene');
+  const issues = await checkPlanPhoto(el, {
+    label: 'scene 01',
+    planPhoto: 'place/gamcheon-sky-vista.jpg',
+    photosRoot: PHOTOS_ROOT,
+  });
+  await browser.close();
+  assert.equal(issues.length, 1, `거부 1건만 나와야 한다 — 실제: ${JSON.stringify(issues)}`);
+  assert.match(issues[0], /반응형 이미지 선택을 쓴다/);
 });
 
 // 반대 방향. 같은 파일을 다르게 적었을 뿐인데 실패하면, 이 검사는 다음번에

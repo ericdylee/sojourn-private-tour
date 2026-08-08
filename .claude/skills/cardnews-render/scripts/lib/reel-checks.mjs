@@ -221,19 +221,35 @@ async function canonicalPath(fsPath) {
  * the gate cleared one file while the encoder photographed another and nothing
  * reconciled them.
  *
- * TWO ATTRIBUTES, TWO CHECKS, AND THE SECOND ONE IS THE LOAD-BEARING ONE.
- * `data-photo` is the ledger key; `src` is what the browser paints. A first
- * version of this compared `data-photo` alone, which left the hole open at
- * exactly the place it was written to close it: reproduced on the live reel by
- * changing ONLY scene 01's `src` to `place/gamcheon-hero-src.jpg` (CC BY-SA
- * 2.0, an orphaned manifest row, on disk) and leaving `data-photo` and the plan
- * agreeing — the page painted the 3840x2560 ShareAlike photograph while this
- * check returned zero issues, and with QA at PASS the run printed
- * `GATE: 발행 가능`, raised zero issues and wrote a publishable 13.5MB
- * `reel.mp4` whose every scene-01 frame is that photograph, under a credit line
- * naming a different photographer and a different licence. `data-photo` is
- * bookkeeping; `src` is the pixels. Both are compared to the plan, so the two
- * also agree with each other by transitivity.
+ * EVERY LABEL IS A LABEL UNTIL THE BROWSER RESOLVES IT. This check has been
+ * widened twice, both times because the thing it trusted turned out to be one
+ * more name rather than the file:
+ *
+ *  1. It compared `data-photo` alone. Reproduced on the live reel by changing
+ *     ONLY scene 01's `src` to `place/gamcheon-hero-src.jpg` (CC BY-SA 2.0, an
+ *     orphaned manifest row, on disk) with `data-photo` and the plan agreeing —
+ *     the page painted the 3840x2560 ShareAlike photograph, this check returned
+ *     zero issues, and with QA at PASS the run wrote a publishable 13.5MB
+ *     `reel.mp4` of that photograph under a credit naming a different
+ *     photographer and licence.
+ *  2. It then compared the `src` ATTRIBUTE. Adding `srcset="…hero-src.jpg 1x"`
+ *     while leaving `src`, `data-photo` and the plan all agreeing reproduced
+ *     the identical outcome (13,495,269 bytes, zero issues, no banner):
+ *     with responsive selection in play, `src` is a fallback, not the fetch.
+ *     `<picture><source>` does the same.
+ *
+ * So the comparison is against `currentSrc` — the URL the selection algorithm
+ * settled on — and responsive selection is refused outright besides. The rule
+ * that generalises: compare the resolved fetch, not any attribute that merely
+ * describes it. `data-photo` is still compared, because it is what checkPhotos
+ * and the manifest lookup key off; it is bookkeeping that must agree, not
+ * evidence of what was painted.
+ *
+ * What is NOT covered, and stays uncovered on purpose: CSS `background-image`
+ * (not an `<img>`; nothing in this pipeline inspects it), `<canvas>` and SVG
+ * `<image>`, markup outside `section.reel-scene`, and any scene the plan does
+ * not list — the last of those fails the run through the scene-count issue in
+ * render-reel.mjs instead.
  *
  * Five orphaned CC BY-SA 2.0 Gamcheon rows sit in the manifest today with names
  * one character apart from the ones in use, so this is a typo away, not a
@@ -242,32 +258,50 @@ async function canonicalPath(fsPath) {
  * It also closes a cache hole: `sceneKey` hashes the bytes of the PLAN's photo.
  * If the painted file were another one, replacing its bytes would change no
  * input to the key, and every run would report a hit on frames that no longer
- * matched their source. Forcing plan and `src` to resolve to one file makes the
- * hashed file and the photographed file the same file.
+ * matched their source. Forcing the plan and the resolved fetch onto one file
+ * makes the hashed file and the photographed file the same file — which is also
+ * why responsive selection is refused rather than merely measured: the
+ * selection outcome is a property of the capture environment and is not in the
+ * key at all.
  *
  * Every `<img>` in the scene is checked, not just `.photo img`: an image
  * smuggled in outside a `.photo` wrapper is invisible to checkPhotos, and that
  * would be a photograph nobody cleared at all.
  */
 export async function checkPlanPhoto(el, { label, planPhoto, photosRoot = PHOTOS_ROOT }) {
-  const imgs = await el.evaluate((node) =>
-    [...node.querySelectorAll('img')].map((img) => {
-      const raw = img.getAttribute('src');
-      let href = null;
+  const imgs = await el.evaluate((node) => {
+    // Resolved against the document, so `./x.jpg`, `../a/../a/x.jpg` and
+    // `x%2Ejpg` all arrive in one canonical spelling. Query and hash are
+    // dropped: a cache-buster does not change which file is fetched.
+    const canon = (u) => {
       try {
-        // Resolved against the document, so `./x.jpg`, `../a/../a/x.jpg` and
-        // `x%2Ejpg` all arrive here in one canonical spelling. Query and hash
-        // are dropped: a cache-buster does not change which file is fetched.
-        const u = new URL(raw ?? '', document.baseURI);
-        u.search = '';
-        u.hash = '';
-        href = u.href;
+        const x = new URL(u ?? '', document.baseURI);
+        x.search = '';
+        x.hash = '';
+        return x.href;
       } catch {
-        /* unparseable — reported below as an unverifiable src */
+        return null;
       }
-      return { key: img.dataset.photo ?? null, src: raw, href: raw ? href : null };
-    }),
-  );
+    };
+
+    return [...node.querySelectorAll('img')].map((img) => {
+      const raw = img.getAttribute('src');
+      // currentSrc is the URL the selection algorithm actually settled on —
+      // already absolute, and the only one of the three that is guaranteed to
+      // name the bytes on screen. It is empty before selection runs, so the
+      // src attribute stands in.
+      const current = canon(img.currentSrc || null);
+      const picture = img.parentElement && img.parentElement.tagName === 'PICTURE' ? img.parentElement : null;
+      return {
+        key: img.dataset.photo ?? null,
+        src: raw,
+        href: current ?? (raw ? canon(raw) : null),
+        from: current ? 'currentSrc' : 'src',
+        srcset: img.getAttribute('srcset'),
+        sources: picture ? picture.querySelectorAll('source').length : 0,
+      };
+    });
+  });
 
   const issues = [];
   const expected = planPhoto ?? null;
@@ -292,6 +326,38 @@ export async function checkPlanPhoto(el, { label, planPhoto, photosRoot = PHOTOS
   }
 
   for (const img of imgs) {
+    /* 반응형 이미지 선택은 이 렌더러에서 무조건 거부한다.
+     *
+     * `srcset`이나 `<picture><source>`가 붙으면 `src`도 라벨이 된다 — 브라우저가
+     * 실제로 받아오는 파일은 선택 알고리즘의 결과이고, 그 결과는 DPR·뷰포트·포맷
+     * 지원 여부에 따라 달라진다. 재현: 씬 01에 `srcset="…/gamcheon-hero-src.jpg 1x"`만
+     * 얹고 `src`·`data-photo`·원장을 전부 일치시키자, 프레임에는 3840×2560 CC BY-SA
+     * 2.0 사진이 들어갔는데 검사는 이슈 0건을 냈고 QA가 PASS면 배너 없는 발행용
+     * `reel.mp4`(13,495,269바이트)가 그대로 나왔다. 화면의 크레딧은 `… VaneTrz20 …
+     * CC0`을 인쇄한 채로다. `<picture><source>`도 같은 결과다.
+     *
+     * currentSrc 비교가 이 경우도 잡지만(아래), 그것만으로는 부족하다. 선택 결과는
+     * 캡처 환경의 성질이고 캐시 키에도 들어가지 않는다 — 오늘 통과한 파일이 내일 다른
+     * 파일일 수 있다. 1080×1920 고정 프레임을 결정론적으로 뽑는 렌더러에 반응형 선택이
+     * 필요할 이유가 없으므로, 선택 로직을 따라가며 판정하려 애쓰는 대신 그냥 거부한다.
+     * 거부가 더 싸고 더 보수적이다. */
+    if (img.srcset !== null || img.sources > 0) {
+      const what = [
+        img.srcset !== null ? `srcset="${img.srcset}"` : null,
+        img.sources > 0 ? `<picture>에 <source> ${img.sources}개` : null,
+      ]
+        .filter(Boolean)
+        .join(' + ');
+      issues.push(
+        `${label}: PHOTO — <img>가 반응형 이미지 선택을 쓴다 (${what}). 이 렌더러는 1080×1920 고정 ` +
+          `프레임을 결정론적으로 캡처하므로 반응형 선택이 필요한 경우가 없고, 선택이 붙는 순간 ` +
+          `**src도 data-photo도 어느 파일이 찍히는지 말해 주지 않는다** — 실제 파일은 DPR·뷰포트·포맷 ` +
+          `지원에 따라 달라지는 알고리즘의 결과이고 씬 캐시 키에도 들어가지 않는다. 즉 발행 게이트가 ` +
+          `판정한 라이선스와 프레임 속 사진이 갈라질 수 있고, 그 갈라짐이 실행 환경에 따라 나타났다 ` +
+          `사라진다. srcset과 <source>를 지우고 src 하나만 남겨라`,
+      );
+    }
+
     if (!img.key) {
       issues.push(
         `${label}: PHOTO — <img src="${img.src ?? '(no src)'}">에 data-photo가 없어 원장과 대조할 수 없다`,
@@ -312,13 +378,13 @@ export async function checkPlanPhoto(el, { label, planPhoto, photosRoot = PHOTOS
       );
     }
 
-    // data-photo is a label. This is the file.
+    // data-photo is a label. This is the file the browser settled on.
     if (!expectedPath) continue;
 
     if (!img.href) {
       issues.push(
-        `${label}: PHOTO — <img>의 src가 없거나 해석할 수 없어(${JSON.stringify(img.src)}) ` +
-          `어느 파일이 찍히는지 확인할 수 없다. 원장은 "${expected}"를 지정했다`,
+        `${label}: PHOTO — <img>가 받아오는 파일을 확인할 수 없다 (currentSrc 비어 있음, src=${JSON.stringify(img.src)}). ` +
+          `원장은 "${expected}"를 지정했다`,
       );
       continue;
     }
@@ -326,8 +392,8 @@ export async function checkPlanPhoto(el, { label, planPhoto, photosRoot = PHOTOS
       // A remote or data: source has no manifest row and no licence anyone
       // judged. The gate reads the ledger; nothing reads this.
       issues.push(
-        `${label}: PHOTO — <img src="${img.src}">가 로컬 파일이 아니다. 원장에 없는 출처는 ` +
-          `발행 게이트가 라이선스를 판정할 수 없다`,
+        `${label}: PHOTO — <img>가 받아오는 것이 로컬 파일이 아니다 (${img.from}=${img.href.slice(0, 80)}). ` +
+          `원장에 없는 출처는 발행 게이트가 라이선스를 판정할 수 없다`,
       );
       continue;
     }
@@ -336,8 +402,8 @@ export async function checkPlanPhoto(el, { label, planPhoto, photosRoot = PHOTOS
     if (paintedPath !== expectedPath) {
       issues.push(
         `${label}: PHOTO — 원장과 실제로 찍히는 파일이 다르다. 원장 "${expected}" (${expectedPath}) vs ` +
-          `<img src="${img.src}"> (${paintedPath}). data-photo가 원장과 일치해도 픽셀은 src에서 온다 — ` +
-          `발행 게이트는 원장 쪽 라이선스를 판정하고, 화면의 크레딧도 원장 쪽 저작자를 적는데, ` +
+          `<img> ${img.from} (${paintedPath}). data-photo가 원장과 일치해도 픽셀은 브라우저가 고른 파일에서 ` +
+          `온다 — 발행 게이트는 원장 쪽 라이선스를 판정하고, 화면의 크레딧도 원장 쪽 저작자를 적는데, ` +
           `프레임에는 아무도 검사하지 않은 사진이 들어간다`,
       );
     }
