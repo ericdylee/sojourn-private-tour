@@ -3,11 +3,13 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { pathToFileURL } from 'node:url';
 import { resolve, join } from 'node:path';
-import { mkdtemp, stat, rm } from 'node:fs/promises';
+import { mkdtemp, stat, rm, access } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { seekTo, openEncoder, captureScene, FPS } from '../lib/reel-capture.mjs';
+import { seekTo, openEncoder, captureScene, verifySceneVideo, FPS } from '../lib/reel-capture.mjs';
+
+const exists = async (p) => access(p).then(() => true, () => false);
 
 const execFileAsync = promisify(execFile);
 const FIXTURE = resolve(import.meta.dirname, 'fixtures/skeleton.html');
@@ -98,6 +100,95 @@ test('captureScene이 mp4를 만든다', async () => {
   assert.equal(probe.height, 1920, `높이가 다르다 — 실제 ${probe.height}`);
   assert.equal(probe.r_frame_rate, '30/1', `프레임레이트가 다르다 — 실제 ${probe.r_frame_rate}`);
 
+  await rm(dir, { recursive: true, force: true });
+});
+
+// --- 중단된 실행이 캐시 키에 남기지 않는다 --------------------------------
+//
+// 이 파일이 막는 실제 사고: ffmpeg은 SIGINT를 받으면 출력 파일을 버리는 게
+// 아니라 **마무리한다.** 그래서 냉시작 렌더 중 Ctrl-C — 4분짜리 작업을 멈추는
+// 정상적인 방법 — 는 구조적으로 멀쩡하고 재생까지 되는 짧은 mp4를 남겼다.
+// 호출자는 그 경로를 콘텐츠 해시 캐시 키로 쓰고 access()로만 확인하므로,
+// 다음 실행이 그걸 "cache hit"으로 받아들였다. 실측: 씬 04에서 중단하자
+// 4.5초 자리에 4.033초(121프레임)가 남았고, 재실행은 `scene 04: cache hit
+// (4500ms)`를 찍고 exit 0으로 22.03초짜리 릴스를 내놓으면서 요약 줄에는
+// 22.5초라고 적었다.
+//
+// 고친 방향: 인코더는 `<key>.mp4.part`에 쓰고 ffmpeg이 0으로 끝난 뒤에만
+// rename한다. 중단된 실행은 키 자리에 아무것도 남기지 않는다.
+
+test('최종 경로는 close()가 끝나기 전까지 존재하지 않는다', async () => {
+  const { browser, page, el } = await openScene();
+  const dir = await mkdtemp(join(tmpdir(), 'reel-part-'));
+  const out = join(dir, 'scene.mp4');
+
+  const enc = openEncoder(out, { fps: FPS, width: 1080, height: 1920 });
+  assert.equal(enc.partPath, `${out}.part`, '인코더가 .part에 써야 한다');
+
+  await captureScene({ page, el, durationMs: 300, fps: FPS, onFrame: enc.write });
+  await browser.close();
+
+  // 여기가 중단 지점이다. 프레임은 이미 인코더에 들어갔지만 close()는 아직
+  // 부르지 않았다 — 이 상태에서 프로세스가 죽으면 키 자리는 비어 있어야 한다.
+  //
+  // .part가 이 시점에 이미 있는지는 단정하지 않는다. ffmpeg이 파이프를 언제
+  // 소비하기 시작하는지에 달린 경합이고(작은 프레임 몇 장은 파이프 버퍼에
+  // 그대로 들어앉는다), 이 테스트가 지키는 성질이 아니다. 지키는 성질은
+  // "키 자리에 아무것도 없다" 하나다.
+  assert.equal(await exists(out), false, '최종 경로(=캐시 키)가 close() 전에 이미 존재한다');
+
+  await enc.close();
+
+  assert.equal(await exists(out), true, 'close() 후에는 최종 경로가 있어야 한다');
+  assert.equal(await exists(enc.partPath), false, '.part가 남았다 — rename이 아니라 복사였나');
+
+  await rm(dir, { recursive: true, force: true });
+});
+
+// --- 캐시 히트는 측정으로 확인한다 ----------------------------------------
+//
+// .part 처리는 앞으로 생길 잘린 항목을 막을 뿐, 이미 키 자리에 앉아 있는
+// 것은 못 치운다. verifySceneVideo가 그 몫이다.
+
+async function makeClip(path, seconds) {
+  await execFileAsync('ffmpeg', [
+    '-y', '-v', 'error',
+    '-f', 'lavfi', '-i', `color=c=black:s=320x568:r=30`,
+    '-frames:v', String(Math.round(seconds * 30)),
+    '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-preset', 'ultrafast',
+    path,
+  ]);
+}
+
+test('길이가 맞는 씬 파일은 통과한다', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'reel-verify-'));
+  const good = join(dir, 'good.mp4');
+  await makeClip(good, 4.5);
+  assert.deepEqual(await verifySceneVideo(good, { durationMs: 4500, fps: 30 }), []);
+  await rm(dir, { recursive: true, force: true });
+});
+
+test('중단으로 잘린 씬 파일을 잡는다 — 재생은 되지만 짧다', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'reel-verify-'));
+  const short = join(dir, 'short.mp4');
+  // 실제 중단 실측값과 같은 모양: 135프레임 자리에 121프레임.
+  await makeClip(short, 121 / 30);
+
+  const complaints = await verifySceneVideo(short, { durationMs: 4500, fps: 30 });
+  assert.ok(complaints.length > 0, '잘린 파일을 잡아야 한다');
+  assert.ok(
+    complaints.some((c) => /프레임 121장 — 135장/.test(c)),
+    `프레임 수를 밝혀야 한다 — ${JSON.stringify(complaints)}`,
+  );
+  await rm(dir, { recursive: true, force: true });
+});
+
+test('mp4가 아닌 쓰레기는 크래시가 아니라 불만 한 줄이 된다', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'reel-verify-'));
+  const junk = join(dir, 'junk.mp4');
+  await (await import('node:fs/promises')).writeFile(junk, 'not an mp4');
+  const complaints = await verifySceneVideo(junk, { durationMs: 4500, fps: 30 });
+  assert.ok(complaints.length > 0, '깨진 파일을 잡아야 한다');
   await rm(dir, { recursive: true, force: true });
 });
 
