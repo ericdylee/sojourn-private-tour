@@ -87,10 +87,12 @@ Phase 2  [에이전트 팀 — 병렬 + SendMessage 자체 조율]
    ↓
 Phase 3  brand-qa (증분 검수) ──→ output/qa_report.md
    │     반려 시 담당 에이전트에게 직접 전달. 최대 2회 루프
-   │     게이트: PASS 아니면 Phase 4 진입 불가
+   │     게이트: PASS 아니면 **발행** 불가 (Phase 4 착수는 막지 않는다)
    ↓
 Phase 4  reels-producer ──→ output/reels/
-         게이트: QA PASS + 부기 라이선스 승인완료
+         게이트: 없다 — 착수는 언제나 가능하다.
+         QA PASS는 render-reel.mjs의 발행 게이트가 fail-closed로 판정한다:
+         PASS가 증명되지 않으면 배너가 구워진 reel_INTERNAL.mp4만 나온다
 ```
 
 ### 전달 방식

@@ -110,7 +110,8 @@ blog-writer    ──핵심 문단 요지────────→ social-writ
 9:16으로 재조판하고 CSS 모션 + Playwright + ffmpeg으로 결정론적으로 렌더링한다. **크레딧을 쓰지 않는다.**
 
 1. `_workspace/03_cards.html`에서 카피를 축자 인용해 씬 원장(`_workspace/04_reel_plan.json`)을 먼저 만들어
-   **사용자 승인**을 받는다 (`_workspace/02_carousel.json`은 QA 3회차 교정을 승계하지 못해 낡았다 — 쓰지 않는다)
+   **사용자 승인**을 받는다 (`_workspace/02_carousel.json`은 기획 원장이지 발행본이 아니라 갈라질 수 있다 —
+   카피는 렌더돼서 QA가 실제로 검수한 `03_cards.html`에서만 인용한다)
 2. 승인 후 9:16 조판(`_workspace/04_reel.html`) → 렌더 (`render-reel.mjs`)
 3. 완성 후 `brand-qa`에게 재검수 요청
 
