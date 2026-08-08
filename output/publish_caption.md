@@ -1,10 +1,13 @@
-# 발행 캡션 — 사진 저작권 표기 (감천문화마을 카드 6장 · v4)
+# 발행 캡션 — 사진 저작권 표기 (감천문화마을 카드 6장 · v4 + 릴스)
 
 > **이 표기는 카드와 함께 게시해야 한다.** 카드에 인쇄된 크레딧은 축약형(저작자 / 출처 / 라이선스명 /
 > `cropped`)이고, 그것만으로는 CC BY 4.0 표기가 완성되지 않는다. 라이선스 링크와 변형 내역 전체 —
 > 크롭뿐 아니라 **검정 스크림과 타입 오버레이** — 는 이 파일에만 있다.
 > 캡션을 빼고 카드만 올리면 표기가 불완전해진다. 그것이 축약형을 택한 조건이다.
 > (QA 4회차 N1 · 사용자가 네 후보 중 C안을 선택, 2026-08-07)
+>
+> **릴스도 같은 의무를 지고, 같은 방식으로 이행한다** (2026-08-08). 같은 사진 5장을 쓰고 카드보다 더
+> 자르므로, 릴스 화면의 크레딧도 카드와 **같은 축약형**이고 완전 표기는 아래 릴스 절에 있다.
 
 카드에 실제로 인쇄된 문자열:
 
@@ -77,6 +80,39 @@ dark scrim and type by Sojourn Korea.
   <https://commons.wikimedia.org/wiki/File:Gamcheon_Culture_Village_March_30_2024_8.jpg>
 - **라이선스:** CC BY 4.0 — <https://creativecommons.org/licenses/by/4.0/>
 - **변형:** 정사각 1:1 4000px 크롭 후 2160px 리사이즈 · 검정 스크림 · 타입 오버레이
+
+---
+
+## 릴스 (9:16 · `output/reels/`)
+
+릴스는 카드와 **같은 원본 5장**을 쓴다 — 카드 01·02·04·05·06의 사진이 씬 01~05에 그대로 들어간다
+(카드 03은 씬에서 빠졌다). 릴스 화면에 인쇄되는 문자열도 카드와 같다:
+
+| 씬 | 사용 사진 | 릴스 크레딧 (인쇄) |
+|---|---|---|
+| 01 | `place/gamcheon-sky-vista.jpg` | `Photo: VaneTrz20 / Wikimedia Commons · CC0` |
+| 02–05 | `gamcheon-valley-hill` · `front-doors` · `stairs-slope` · `village-wide` | `Photo: S h y numis / Wikimedia Commons · CC BY 4.0 · cropped` |
+
+**변형 내역은 카드와 다르다 — 더 자르고, 움직인다.** 카드가 이미 1:1로 자른 2160×2160을 받아
+1080×1920에 `object-fit: cover`로 넣으므로 **좌우 43.75%가 추가로 잘리고**, 씬마다 느린 확대
+(ken-burns, 약 8%)가 걸린다. 확대는 시간에 따라 변하는 크롭이지 새로운 종류의 변형이 아니므로
+화면 크레딧의 `cropped` 한 단어가 그대로 옳다 — 다만 **양**이 달라서 여기 적는다.
+
+즉 릴스 사진의 전체 변형 사슬은: **정사각 1:1 크롭 → 2160px 리사이즈 → 9:16 추가 크롭(좌우 43.75%
+제거, 씬별 `object-position`은 `04_reel_plan.json`의 `crop`) → 느린 확대 → 검정 스크림 → 타입
+오버레이**. 원본 파일·저작자·라이선스 링크는 위 "완전 표기 — 카드별 상세"와 동일하다(같은 파일이다).
+
+### 릴스 캡션 하단에 붙일 블록 (영문, 그대로 복사)
+
+```
+Photo credits — all images Wikimedia Commons, cropped to 9:16, slowly zoomed,
+and overlaid with a dark scrim and type by Sojourn Korea.
+
+"Gamcheon Culture Village View blue sky" by VaneTrz20, CC0 1.0
+    creativecommons.org/publicdomain/zero/1.0/
+"Gamcheon Culture Village March 30 2024" 3, 4, 6 and 8 by S h y numis, CC BY 4.0
+    creativecommons.org/licenses/by/4.0/
+```
 
 ---
 
