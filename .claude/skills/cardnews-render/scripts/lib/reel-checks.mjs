@@ -1,3 +1,7 @@
+import { realpath } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { wordCount } from './reel-plan.mjs';
 import { checkContrast } from './contrast.mjs';
 import { seekTo } from './reel-capture.mjs';
@@ -176,47 +180,98 @@ export async function checkTextTransform(el, { label }) {
   );
 }
 
+/* Where the plan's manifest keys are rooted. `place/x.jpg` in the ledger is
+ * `assets/photos/place/x.jpg` on disk — the same join render-reel.mjs makes
+ * before handing the file to sceneKey. */
+const PHOTOS_ROOT = 'assets/photos';
+
+/* Two spellings of one file must not read as two files.
+ *
+ * The plan holds a manifest key rooted at assets/photos (`place/x.jpg`); the
+ * HTML holds a URL rooted at the document (`../assets/photos/place/x.jpg`).
+ * Both sides go through the same two normalisations before they are compared —
+ * URL/path resolution collapses `.`, `..`, doubled slashes and percent-escapes,
+ * and realpath collapses symlinks and, on a case-insensitive volume, case. So
+ * `./place/x.jpg` and `place/x.jpg` agree, and what the check answers is "is
+ * this the same FILE", not "is this the same string". A check that failed on
+ * an equivalent spelling would be worse than none: the first false alarm is
+ * the day someone learns to render past this. */
+async function canonicalPath(fsPath) {
+  try {
+    return await realpath(fsPath);
+  } catch {
+    // Not on disk. The path is still normalised so the comparison stays
+    // meaningful; the missing file itself is reported by checkPhotos ("failed
+    // to load") and by sceneKey's ENOENT handler in render-reel.mjs.
+    return resolve(fsPath);
+  }
+}
+
 /**
- * The scene ledger and the scene markup must name the SAME photograph.
+ * The scene ledger and the scene markup must name the SAME photograph — and
+ * "the markup" means the file the browser actually fetches, not only the label
+ * attached to it.
  *
  * This is the seam the publication gate stands on. `render-reel.mjs` builds its
  * `rights` list from `plan.scenes[].photo` — the JSON ledger — and hands that to
  * `decideGate`, which is the only place a licence is ever judged. The frames,
- * meanwhile, come from whatever `<img data-photo>` the HTML carries.
+ * meanwhile, come from whatever `<img>` the HTML carries.
  * `checkPhotos` inspects that img for manifest presence, slot, AI-generation
  * and credit, but it has no licence rule at all. So until this check existed,
  * the gate cleared one file while the encoder photographed another and nothing
  * reconciled them.
  *
- * Reproduced before the fix: scene 01's `<img>` pointed at
- * `place/gamcheon-hero-src.jpg` (CC BY-SA 2.0, in the manifest, on disk) while
- * the plan still named the CC BY 4.0 file. With QA at PASS the run printed
- * `GATE: 발행 가능`, raised zero issues, and wrote a publishable `reel.mp4`
- * whose every scene-01 frame is a ShareAlike photograph — under a credit line
- * that named the wrong photographer and the wrong licence. Five orphaned
- * CC BY-SA 2.0 Gamcheon rows sit in the manifest today with names one character
- * apart from the ones in use, so this is a typo away, not a conspiracy.
+ * TWO ATTRIBUTES, TWO CHECKS, AND THE SECOND ONE IS THE LOAD-BEARING ONE.
+ * `data-photo` is the ledger key; `src` is what the browser paints. A first
+ * version of this compared `data-photo` alone, which left the hole open at
+ * exactly the place it was written to close it: reproduced on the live reel by
+ * changing ONLY scene 01's `src` to `place/gamcheon-hero-src.jpg` (CC BY-SA
+ * 2.0, an orphaned manifest row, on disk) and leaving `data-photo` and the plan
+ * agreeing — the page painted the 3840x2560 ShareAlike photograph while this
+ * check returned zero issues, and with QA at PASS the run printed
+ * `GATE: 발행 가능`, raised zero issues and wrote a publishable 13.5MB
+ * `reel.mp4` whose every scene-01 frame is that photograph, under a credit line
+ * naming a different photographer and a different licence. `data-photo` is
+ * bookkeeping; `src` is the pixels. Both are compared to the plan, so the two
+ * also agree with each other by transitivity.
+ *
+ * Five orphaned CC BY-SA 2.0 Gamcheon rows sit in the manifest today with names
+ * one character apart from the ones in use, so this is a typo away, not a
+ * conspiracy.
  *
  * It also closes a cache hole: `sceneKey` hashes the bytes of the PLAN's photo.
- * If the HTML pointed somewhere else, replacing the bytes of the file actually
- * being photographed changed no input to the key, and every run reported a hit
- * on frames that no longer matched their source. Forcing the two to agree makes
- * the hashed file and the rendered file the same file.
+ * If the painted file were another one, replacing its bytes would change no
+ * input to the key, and every run would report a hit on frames that no longer
+ * matched their source. Forcing plan and `src` to resolve to one file makes the
+ * hashed file and the photographed file the same file.
  *
  * Every `<img>` in the scene is checked, not just `.photo img`: an image
  * smuggled in outside a `.photo` wrapper is invisible to checkPhotos, and that
  * would be a photograph nobody cleared at all.
  */
-export async function checkPlanPhoto(el, { label, planPhoto }) {
+export async function checkPlanPhoto(el, { label, planPhoto, photosRoot = PHOTOS_ROOT }) {
   const imgs = await el.evaluate((node) =>
-    [...node.querySelectorAll('img')].map((img) => ({
-      key: img.dataset.photo ?? null,
-      src: img.getAttribute('src'),
-    })),
+    [...node.querySelectorAll('img')].map((img) => {
+      const raw = img.getAttribute('src');
+      let href = null;
+      try {
+        // Resolved against the document, so `./x.jpg`, `../a/../a/x.jpg` and
+        // `x%2Ejpg` all arrive here in one canonical spelling. Query and hash
+        // are dropped: a cache-buster does not change which file is fetched.
+        const u = new URL(raw ?? '', document.baseURI);
+        u.search = '';
+        u.hash = '';
+        href = u.href;
+      } catch {
+        /* unparseable — reported below as an unverifiable src */
+      }
+      return { key: img.dataset.photo ?? null, src: raw, href: raw ? href : null };
+    }),
   );
 
   const issues = [];
   const expected = planPhoto ?? null;
+  const expectedPath = expected ? await canonicalPath(resolve(photosRoot, expected)) : null;
 
   if (imgs.length === 0) {
     if (expected) {
@@ -243,11 +298,47 @@ export async function checkPlanPhoto(el, { label, planPhoto }) {
       );
       continue;
     }
-    if (img.key !== expected) {
+    // Compared as FILES, not as strings, for the same reason as src below: both
+    // sides are manifest keys rooted at photosRoot, so `./place/x.jpg` and
+    // `place/x.jpg` are one photograph and must not read as two. A key that is
+    // not a canonical manifest key is a real defect, but it is checkPhotos's
+    // ("not in manifest.json") and the gate's (rights null → fail-closed), and
+    // reporting it here as "a different photograph" would name the wrong fault.
+    if (!expectedPath || (await canonicalPath(resolve(photosRoot, img.key))) !== expectedPath) {
       issues.push(
-        `${label}: PHOTO — 원장과 HTML이 다른 사진을 가리킨다. 원장 "${expected ?? '(없음)'}" vs HTML "${img.key}". ` +
+        `${label}: PHOTO — 원장과 HTML이 다른 사진을 가리킨다. 원장 "${expected ?? '(없음)'}" vs HTML data-photo "${img.key}". ` +
           `발행 게이트는 원장 쪽 라이선스를 보고, 프레임에 찍히는 것은 HTML 쪽이다 — 둘이 갈라지면 게이트가 ` +
           `검사하지 않은 사진이 영상에 들어간다`,
+      );
+    }
+
+    // data-photo is a label. This is the file.
+    if (!expectedPath) continue;
+
+    if (!img.href) {
+      issues.push(
+        `${label}: PHOTO — <img>의 src가 없거나 해석할 수 없어(${JSON.stringify(img.src)}) ` +
+          `어느 파일이 찍히는지 확인할 수 없다. 원장은 "${expected}"를 지정했다`,
+      );
+      continue;
+    }
+    if (!img.href.startsWith('file:')) {
+      // A remote or data: source has no manifest row and no licence anyone
+      // judged. The gate reads the ledger; nothing reads this.
+      issues.push(
+        `${label}: PHOTO — <img src="${img.src}">가 로컬 파일이 아니다. 원장에 없는 출처는 ` +
+          `발행 게이트가 라이선스를 판정할 수 없다`,
+      );
+      continue;
+    }
+
+    const paintedPath = await canonicalPath(fileURLToPath(img.href));
+    if (paintedPath !== expectedPath) {
+      issues.push(
+        `${label}: PHOTO — 원장과 실제로 찍히는 파일이 다르다. 원장 "${expected}" (${expectedPath}) vs ` +
+          `<img src="${img.src}"> (${paintedPath}). data-photo가 원장과 일치해도 픽셀은 src에서 온다 — ` +
+          `발행 게이트는 원장 쪽 라이선스를 판정하고, 화면의 크레딧도 원장 쪽 저작자를 적는데, ` +
+          `프레임에는 아무도 검사하지 않은 사진이 들어간다`,
       );
     }
   }

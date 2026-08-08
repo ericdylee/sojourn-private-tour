@@ -54,6 +54,10 @@ const planPath = resolve(planArg);
 const outDir = resolve(outArg ?? 'output/reels');
 const cacheDir = resolve('_workspace/.reel-cache');
 const assetsDir = resolve(import.meta.dirname, '../assets');
+// One root for both uses below — the file sceneKey hashes and the file
+// checkPlanPhoto compares the markup against have to be rooted identically, or
+// the check and the cache can disagree about what the ledger even names.
+const photosRoot = resolve('assets/photos');
 
 for (const p of [htmlPath, planPath]) {
   try {
@@ -98,9 +102,22 @@ const { photoIndex, manifestPath } = await loadPhotoIndex();
 // before a browser opens, while the DOM does not exist yet. Rebuilding it from
 // the DOM would mean opening the page, reading the images, deciding, and only
 // then re-navigating to capture: a two-phase render for no extra safety, given
-// that checkPlanPhoto (below) makes a plan/DOM disagreement a hard ISSUE. With
-// that check in place the two sources are provably the same file on every scene
-// that reaches the encoder, and a scene where they differ never gets there.
+// that checkPlanPhoto (below) makes a plan/DOM disagreement a hard ISSUE.
+//
+// What that check buys, stated no wider than it is true: for every <img> inside
+// a `section.reel-scene` the plan has a scene for, both `data-photo` AND the
+// resolved `src` must name the file the plan names — so a scene where the judged
+// file and the photographed file differ never reaches the encoder. What it does
+// not cover: markup outside those sections, a scene the plan does not list (the
+// count mismatch below is itself an ISSUE, so that run fails too), and CSS
+// background images, which are not <img> and which nothing here inspects.
+//
+// An earlier version of this comment said the two sources were "provably the
+// same file" while the check compared `data-photo` alone. The src hole it missed
+// was reproduced end to end: only the src moved to an orphaned CC BY-SA 2.0 row,
+// and the run printed 발행 가능, raised zero issues and wrote a publishable
+// reel.mp4 of a ShareAlike photograph. A guarantee written wider than the code
+// is worse than no comment — the next person to touch photos believes it.
 const rights = plan.scenes.map((s, i) => ({
   scene: `scene ${String(i + 1).padStart(2, '0')}`,
   photo: s.photo ?? null,
@@ -206,14 +223,14 @@ for (const [i, spec] of plan.scenes.entries()) {
   // Reconciles the ledger the gate judged against the markup the encoder
   // photographs. Without it the gate can clear one file while another is in
   // every frame — see the comment on checkPlanPhoto.
-  issues.push(...(await checkPlanPhoto(chkEl, { label, planPhoto: spec.photo ?? null })));
+  issues.push(...(await checkPlanPhoto(chkEl, { label, planPhoto: spec.photo ?? null, photosRoot })));
   const c = await checkContrastOverTime(checkPage, chkEl, { label, durationMs: spec.duration_ms });
   issues.push(...c.issues);
   notes.push(...c.notes);
 
   // Cache.
   const sceneHtml = await capEl.evaluate((el) => el.outerHTML);
-  const photoPath = spec.photo ? resolve('assets/photos', spec.photo) : null;
+  const photoPath = spec.photo ? resolve(photosRoot, spec.photo) : null;
   // sceneKey reads every file it hashes, so a plan pointing at a photo that is
   // not on disk throws ENOENT from inside it. Unhandled, that ends the process
   // with a stack trace — and the loop's own ISSUES list, which checkPhotos has

@@ -133,32 +133,94 @@ test('접힌 URL을 다른 검사에 걸면 아무도 못 잡는다 — 이 검�
 // --- 원장 ↔ HTML 사진 대조 ----------------------------------------------
 //
 // 발행 게이트는 04_reel_plan.json의 photo로 라이선스를 판정하고, 프레임에
-// 찍히는 것은 HTML의 <img data-photo>다. 둘을 맞춰 보는 코드가 없어서,
-// 게이트가 CC BY 4.0을 통과시키는 동안 CC BY-SA 2.0 사진이 전 프레임에
-// 들어가고도 이슈 0건·발행 가능 판정이 나왔다(실제 재현됨).
+// 찍히는 것은 HTML의 <img>다. 둘을 맞춰 보는 코드가 없어서, 게이트가
+// CC BY 4.0을 통과시키는 동안 CC BY-SA 2.0 사진이 전 프레임에 들어가고도
+// 이슈 0건·발행 가능 판정이 나왔다(실제 재현됨).
+//
+// 대조 대상은 둘이다. data-photo는 원장 키(장부)이고 src는 실제로 받아오는
+// 파일(픽셀)이다. 처음 판은 data-photo만 봤고, 그래서 src만 옮기면 구멍이
+// 그대로 열려 있었다 — 아래 두 번째 블록이 그 경우다.
+
+const PHOTOS_ROOT = resolve(import.meta.dirname, '../../../../../assets/photos');
 
 test('원장과 HTML이 같은 사진을 가리키면 통과한다', async () => {
   const { browser, el } = await scene('scenes-ok.html');
   const issues = await checkPlanPhoto(el, {
     label: 'scene 01',
     planPhoto: 'place/gamcheon-sky-vista.jpg',
+    photosRoot: PHOTOS_ROOT,
   });
   await browser.close();
   assert.deepEqual(issues, []);
 });
 
-test('원장과 HTML이 다른 사진을 가리키면 잡는다 — 게이트가 검사한 파일과 찍힌 파일이 다르다', async () => {
+test('원장과 HTML의 data-photo가 다르면 잡는다 — 게이트가 검사한 파일과 찍힌 파일이 다르다', async () => {
   // 매니페스트에 실재하는 고아 행. 이름이 한 글자 차이라 오타 거리다.
   const { browser, el } = await scene('scenes-ok.html');
   const issues = await checkPlanPhoto(el, {
     label: 'scene 01',
     planPhoto: 'place/gamcheon-hero-src.jpg',
+    photosRoot: PHOTOS_ROOT,
   });
   await browser.close();
-  assert.equal(issues.length, 1, `불일치를 잡아야 한다 — 실제: ${JSON.stringify(issues)}`);
+  assert.ok(issues.length > 0, `불일치를 잡아야 한다 — 실제: ${JSON.stringify(issues)}`);
   assert.match(issues[0], /원장과 HTML이 다른 사진을 가리킨다/);
   assert.match(issues[0], /gamcheon-hero-src\.jpg/, `원장 쪽 파일명을 밝혀야 한다 — ${issues[0]}`);
   assert.match(issues[0], /gamcheon-sky-vista\.jpg/, `HTML 쪽 파일명을 밝혀야 한다 — ${issues[0]}`);
+});
+
+// 최종 리뷰가 end-to-end로 재현한 그 경우다. src만 고아 SA 파일로 옮기고
+// data-photo와 원장은 일치시키면, 수정 전에는 exit 0 · ISSUES 0 · 발행 가능한
+// 13.5MB reel.mp4가 나왔고 전 프레임이 SA 사진이었다. 화면의 크레딧은 원장
+// 쪽 저작자·라이선스를 그대로 적고 있었으니, 잘못된 표시까지 동반한다.
+test('data-photo가 원장과 같아도 src가 다른 파일이면 잡는다 — 픽셀은 src에서 온다', async () => {
+  const { browser, el } = await scene('scene-photo-src-drift.html');
+  // 픽셀이 실제로 SA 파일에서 오고 있다는 것을 먼저 고정한다. 이게 깨지면
+  // 아래 단정은 검사를 시험하는 게 아니라 픽스처를 시험하는 것이 된다.
+  const painted = await el.evaluate((n) => {
+    const img = n.querySelector('img');
+    return { file: img.currentSrc.split('/').pop(), w: img.naturalWidth };
+  });
+  const issues = await checkPlanPhoto(el, {
+    label: 'scene 01',
+    planPhoto: 'place/gamcheon-sky-vista.jpg',
+    photosRoot: PHOTOS_ROOT,
+  });
+  await browser.close();
+  assert.equal(painted.file, 'gamcheon-hero-src.jpg');
+  assert.ok(painted.w > 0, '픽스처의 사진이 실제로 로드돼야 한다');
+  assert.equal(issues.length, 1, `src 불일치를 잡아야 한다 — 실제: ${JSON.stringify(issues)}`);
+  assert.match(issues[0], /원장과 실제로 찍히는 파일이 다르다/);
+  assert.match(issues[0], /gamcheon-hero-src\.jpg/, `찍히는 파일을 밝혀야 한다 — ${issues[0]}`);
+});
+
+// 반대 방향. 같은 파일을 다르게 적었을 뿐인데 실패하면, 이 검사는 다음번에
+// 우회 대상이 된다. `./` · `dir/..` · 이중 슬래시 · 퍼센트 이스케이프를 한
+// 픽스처에 모아 뒀다.
+test('철자만 다르고 같은 파일이면 통과한다 — ./ 와 dir/.. 로 거짓 실패를 내지 않는다', async () => {
+  const { browser, el } = await scene('scene-photo-src-spelling.html');
+  const painted = await el.evaluate((n) => n.querySelector('img').naturalWidth);
+  const issues = await checkPlanPhoto(el, {
+    label: 'scene 01',
+    planPhoto: 'place/gamcheon-sky-vista.jpg',
+    photosRoot: PHOTOS_ROOT,
+  });
+  await browser.close();
+  assert.ok(painted > 0, '픽스처의 별난 철자가 실제로 같은 파일을 받아와야 한다');
+  assert.deepEqual(issues, [], `같은 파일이므로 통과해야 한다 — ${JSON.stringify(issues)}`);
+});
+
+// 원장 쪽도 같은 정규화를 거친다. 원장이 `./place/x.jpg`로 적혀 있어도
+// `place/x.jpg`와 같은 파일이다.
+test('원장 쪽 철자가 ./로 시작해도 같은 파일로 읽는다', async () => {
+  const { browser, el } = await scene('scenes-ok.html');
+  const issues = await checkPlanPhoto(el, {
+    label: 'scene 01',
+    planPhoto: './place/gamcheon-sky-vista.jpg',
+    photosRoot: PHOTOS_ROOT,
+  });
+  await browser.close();
+  assert.deepEqual(issues, [], JSON.stringify(issues));
 });
 
 test('원장이 사진을 지정했는데 HTML에 <img>가 없으면 잡는다', async () => {
@@ -166,17 +228,20 @@ test('원장이 사진을 지정했는데 HTML에 <img>가 없으면 잡는다',
   const issues = await checkPlanPhoto(el, {
     label: 'scene 01',
     planPhoto: 'place/gamcheon-sky-vista.jpg',
+    photosRoot: PHOTOS_ROOT,
   });
   await browser.close();
   assert.equal(issues.length, 1, JSON.stringify(issues));
   assert.match(issues[0], /HTML에 <img>가 없다/);
 });
 
-test('checkPhotos는 이 불일치를 못 본다 — 라이선스 규칙이 거기 없다', async () => {
-  // checkPhotos는 매니페스트 등재·슬롯·AI생성·크레딧만 본다. 원장이 무엇을
-  // 가리키는지는 인자로 받지도 않는다. 그래서 이 검사가 따로 필요하다.
+test('checkPhotos는 이 불일치를 못 본다 — 라이선스 규칙도 src 규칙도 거기 없다', async () => {
+  // checkPhotos는 매니페스트 등재·슬롯·AI생성·크레딧만 보고, 전부 data-photo
+  // 기준이다. 원장이 무엇을 가리키는지는 인자로 받지도 않고, src가 다른 파일을
+  // 가리켜도 볼 규칙이 없다. 그래서 이 검사가 따로 필요하다 — SA 사진이 전
+  // 프레임에 들어간 그 픽스처를 그대로 먹여도 아무 불만이 없다.
   const { loadPhotoIndex, checkPhotos } = await import('../lib/photos.mjs');
-  const { browser, el } = await scene('scenes-ok.html');
+  const { browser, el } = await scene('scene-photo-src-drift.html');
   const { photoIndex, manifestPath } = await loadPhotoIndex(
     resolve(import.meta.dirname, '../../../../../assets/photos/manifest.json'),
   );
