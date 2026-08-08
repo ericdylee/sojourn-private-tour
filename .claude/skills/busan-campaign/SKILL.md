@@ -101,19 +101,24 @@ blog-writer    ──핵심 문단 요지────────→ social-writ
 
 **수정 루프:** BLOCKER/MAJOR가 있으면 `brand-qa`가 담당 에이전트에게 직접 반려한다. **최대 2회**까지 돌리고, 그래도 남으면 사용자에게 에스컬레이션한다. 같은 지적을 3회 반복하지 마라 — 에이전트가 못 고치는 문제라면 사람이 결정할 문제다.
 
-**게이트:** 판정이 PASS가 아니면 Phase 4로 넘어가지 않는다.
+**게이트:** 판정이 PASS가 아니면 **발행하지 않는다.** Phase 4(릴스) 착수는 막지 않는다 — 릴스 파이프라인은
+발행 게이트가 fail-closed라서 HOLD 상태에서 내부 시안만 내놓는다. 아래 Phase 4의 게이트 항목을 보라.
 
 ## Phase 4 — 릴스 (단독, 선택)
 
 `reels-producer`를 `model: "opus"`로 호출한다. 영상 생성 모델은 쓰지 않는다 — `_workspace/03_cards.html`을
 9:16으로 재조판하고 CSS 모션 + Playwright + ffmpeg으로 결정론적으로 렌더링한다. **크레딧을 쓰지 않는다.**
 
-1. `_workspace/03_cards.html`에서 카피를 축자 인용해 씬 구성표(`output/reels/scene_plan.md`)를 먼저 만들어
+1. `_workspace/03_cards.html`에서 카피를 축자 인용해 씬 원장(`_workspace/04_reel_plan.json`)을 먼저 만들어
    **사용자 승인**을 받는다 (`_workspace/02_carousel.json`은 QA 3회차 교정을 승계하지 못해 낡았다 — 쓰지 않는다)
-2. 승인 후 9:16 조판 → 렌더 (`render-reel.mjs`)
+2. 승인 후 9:16 조판(`_workspace/04_reel.html`) → 렌더 (`render-reel.mjs`)
 3. 완성 후 `brand-qa`에게 재검수 요청
 
-**게이트:** QA PASS. 아니면 착수하지 않는다.
+**게이트: QA PASS는 발행 조건이지 착수 조건이 아니다.** 판정이 HOLD여도 Phase 4를 진행한다 — 발행 게이트가
+fail-closed라서 배너가 프레임에 구워진 `reel_INTERNAL.mp4`만 나오고, 발행 가능한 `reel.mp4`는 만들어지지
+않는다. **게이트가 있는 이유가 HOLD 상태의 제작을 안전하게 만드는 것**이므로, 여기서 착수를 막으면 사고가
+아니라 작업이 막힌다. 판정이 PASS로 바뀌면 재렌더해야 배너가 빠진다(게이트 판정이 씬 캐시 키에 들어 있다).
+Phase 3의 "PASS가 아니면 Phase 4로 넘어가지 않는다"는 **발행** 기준이며, 제작 착수를 막는 조건이 아니다.
 (부기 라이선스는 더 이상 게이트가 아니다 — 캐릭터 사용이 보류됐다. Higgsfield 크레딧도 게이트가 아니다 —
 이 파이프라인은 영상 생성 모델을 호출하지 않는다.)
 

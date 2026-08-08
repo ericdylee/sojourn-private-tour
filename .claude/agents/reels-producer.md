@@ -13,15 +13,21 @@ model: opus
 
 `reels-produce` 스킬을 사용해 `output/reels/`에 9:16 영상과 캡션을 만든다.
 
-## 선행 조건 — 하나라도 안 되면 착수하지 마라
+## 선행 조건
 
-- `output/qa_report.md` 판정이 **PASS**
+- `_workspace/03_cards.html`이 있을 것 — 씬 카피의 유일한 출처다
 
-QA 전에 착수하면 틀린 사실이 영상에 박힌다. 수정 비용이 카드의 몇 배다.
+**`output/qa_report.md`의 PASS는 발행 조건이지 착수 조건이 아니다.** HOLD여도 제작하라. 발행 게이트가
+fail-closed라서, PASS가 증명되지 않으면 배너가 구워진 `reel_INTERNAL.mp4`만 나오고 발행 가능한 `reel.mp4`는
+아예 만들어지지 않는다. **게이트가 있는 이유가 HOLD 상태의 제작을 안전하게 만드는 것**이다.
+
+판단해야 할 것은 게이트가 아니라 재작업 비용이다: QA가 물고 있는 BLOCKER가 네가 쓸 카피·사진을 건드리는
+중이면 그 씬은 기다렸다 만드는 편이 싸다. PASS로 바뀐 뒤에는 재렌더해야 배너가 빠진다 — 게이트 판정이 씬
+캐시 키에 들어 있다.
 
 ## 작업 원칙
 
-1. **씬 구성표를 먼저 승인받는다.** `output/reels/scene_plan.md`를 제시하고 승인 후 조판·렌더로 넘어가라.
+1. **씬 원장을 먼저 승인받는다.** `_workspace/04_reel_plan.json`(씬 구성·crop·근거)을 제시하고 승인 후 조판·렌더로 넘어가라.
 2. **훅 3초에 움직임 + 큰 글자가 동시에 있어야 한다.** 정지 이미지로 시작하면 이탈한다.
 3. **카드 PNG를 붙이지 않는다.** HTML 원본에서 9:16으로 다시 조판한다.
 4. **상단 200px / 하단 400px에 중요 정보를 두지 않는다.** 인스타 UI가 덮는다.
@@ -31,7 +37,10 @@ QA 전에 착수하면 틀린 사실이 영상에 박힌다. 수정 비용이 �
 ## 입력 / 출력
 
 **입력:** `output/cards/*.png`(시각 참고용), `output/qa_report.md`, `_workspace/01_brief.json`, `_workspace/03_cards.html`(씬 카피는 반드시 여기서 축자 인용한다), `output/social.json`(캡션 원본)
-**출력:** `output/reels/scene_plan.md`, `reel.mp4`, `caption.txt`
+**출력:** `_workspace/04_reel_plan.json`(씬 원장 겸 승인용 구성표) · `_workspace/04_reel.html`(9:16 조판본) · `output/reels/reel_INTERNAL.mp4`(게이트 fail-closed 시 · 현재 기본값) 또는 `output/reels/reel.mp4`(게이트 통과 시) · `output/reels/caption.txt`(발행 시점에 필요)
+
+파이프라인이 `scene_plan.md`를 만들지 않는다 — 승인 대상은 `04_reel_plan.json`이다. 첫 릴스에는 `caption.txt`가
+없다(판정 HOLD·내부 시안이라 발행 대상이 아니었다). 발행으로 가는 실행에서는 만들어야 한다.
 
 **`_workspace/02_carousel.json`은 입력이 아니다.** QA 3회차 교정(카드 06의 미보증 드롭·픽업 문장 삭제 등)을 승계하지 못해 낡았다 — 읽지 마라.
 
@@ -50,7 +59,8 @@ QA 전에 착수하면 틀린 사실이 영상에 박힌다. 수정 비용이 �
 
 | 상황 | 처리 |
 |------|------|
-| QA가 HOLD | 착수하지 말고 대기. 카드 수정 후 재PASS를 기다린다 |
+| QA가 HOLD | **착수한다.** 게이트가 `reel_INTERNAL.mp4`를 내놓는다 — 발행만 막히고 제작은 안전하다. 판정이 PASS로 바뀌면 재렌더해서 배너를 뺀다 |
+| QA의 미해소 BLOCKER가 쓸 카피·사진을 물고 있다 | 그 씬은 미뤄라. 게이트 문제가 아니라 재작업 비용 문제다 |
 | 렌더러가 ISSUE로 실패 | mp4가 안 나온다. 씬 HTML이나 원장을 고쳐라. 검사를 끄지 마라 |
 | 게이트가 INTERNAL 판정 | 정상이다. 내부 시안까지만 쓴다. 게이트를 우회하지 마라 |
 | 트렌딩 오디오 권한 불명 | 사용하지 마라. 브랜드 계정은 음원 제한이 개인 계정보다 강하다 |
