@@ -95,13 +95,13 @@ export const AGENTS = [
     id: 'reels-producer',
     label: '릴스',
     phase: '릴스',
-    blurb: '9:16 인스타 릴스. 씬 구성표 승인 후 Higgsfield 생성',
+    blurb: '9:16 인스타 릴스. 씬 구성표 승인 후 HTML 재조판 + 결정론적 렌더 (크레딧 0)',
     output: 'output/reels/',
-    placeholder: '예: 씬 구성표까지만 만들고 승인을 받아라. 생성은 아직 하지 마라.',
+    placeholder: '예: 씬 구성표까지만 만들고 승인을 받아라. 조판·렌더는 아직 하지 마라.',
     presets: [
       {
         label: '씬 구성표만',
-        text: '씬 구성표(output/reels/scene_plan.md)까지만 만들고 멈춰라.\n\nHiggsfield 크레딧이 부족하므로 영상 생성은 절대 하지 마라.\n구성표를 게이트로 승인받되, 승인을 받아도 생성 단계로 넘어가지 마라.',
+        text: '_workspace/02_carousel.json에서 씬 4~5개를 골라 04_reel_plan.json을 만들고,\nscene_plan.md로 사람 승인을 받아라. 승인 후 9:16 조판(04_reel.html)을 하고\n각 씬 첫 프레임으로 크롭을 한 번 더 확인받은 뒤 render-reel.mjs를 돌려라.\n\n크레딧을 쓰지 않는다 — 영상 생성 모델을 부르지 마라.\nQA가 PASS가 아니면 reel_INTERNAL.mp4가 나오는 것이 정상이다. 게이트를 우회하지 마라.',
       },
     ],
   },
