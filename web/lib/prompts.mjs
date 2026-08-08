@@ -101,7 +101,7 @@ export const AGENTS = [
     presets: [
       {
         label: '씬 구성표만',
-        text: '_workspace/02_carousel.json에서 씬 4~5개를 골라 04_reel_plan.json을 만들고,\nscene_plan.md로 사람 승인을 받아라. 승인 후 9:16 조판(04_reel.html)을 하고\n각 씬 첫 프레임으로 크롭을 한 번 더 확인받은 뒤 render-reel.mjs를 돌려라.\n\n크레딧을 쓰지 않는다 — 영상 생성 모델을 부르지 마라.\nQA가 PASS가 아니면 reel_INTERNAL.mp4가 나오는 것이 정상이다. 게이트를 우회하지 마라.',
+        text: '_workspace/03_cards.html에서 카피를 축자 인용해 씬 4~5개를 골라 04_reel_plan.json을 만들어라.\n(`_workspace/02_carousel.json`은 QA 3회차 교정을 승계하지 못해 낡았다 — 카피 출처로 쓰지 마라.)\n\nscene_plan.md로 사람 승인을 받아라. 승인 후 9:16 조판(04_reel.html)을 하고\n각 씬 첫 프레임으로 크롭을 한 번 더 확인받은 뒤 render-reel.mjs를 돌려라.\n\n크레딧을 쓰지 않는다 — 영상 생성 모델을 부르지 마라.\nQA가 PASS가 아니면 reel_INTERNAL.mp4가 나오는 것이 정상이다. 게이트를 우회하지 마라.',
       },
     ],
   },

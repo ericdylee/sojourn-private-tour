@@ -105,14 +105,17 @@ blog-writer    ──핵심 문단 요지────────→ social-writ
 
 ## Phase 4 — 릴스 (단독, 선택)
 
-`reels-producer`를 `model: "opus"`로 호출한다.
+`reels-producer`를 `model: "opus"`로 호출한다. 영상 생성 모델은 쓰지 않는다 — `_workspace/03_cards.html`을
+9:16으로 재조판하고 CSS 모션 + Playwright + ffmpeg으로 결정론적으로 렌더링한다. **크레딧을 쓰지 않는다.**
 
-1. 씬 구성표(`output/reels/scene_plan.md`)를 먼저 만들어 **사용자 승인**을 받는다
-2. 승인 후 Higgsfield로 생성
+1. `_workspace/03_cards.html`에서 카피를 축자 인용해 씬 구성표(`output/reels/scene_plan.md`)를 먼저 만들어
+   **사용자 승인**을 받는다 (`_workspace/02_carousel.json`은 QA 3회차 교정을 승계하지 못해 낡았다 — 쓰지 않는다)
+2. 승인 후 9:16 조판 → 렌더 (`render-reel.mjs`)
 3. 완성 후 `brand-qa`에게 재검수 요청
 
-**게이트:** QA PASS + Higgsfield 크레딧 확보. 둘 중 하나라도 아니면 착수하지 않는다.
-(부기 라이선스는 더 이상 게이트가 아니다 — 캐릭터 사용이 보류됐다.)
+**게이트:** QA PASS. 아니면 착수하지 않는다.
+(부기 라이선스는 더 이상 게이트가 아니다 — 캐릭터 사용이 보류됐다. Higgsfield 크레딧도 게이트가 아니다 —
+이 파이프라인은 영상 생성 모델을 호출하지 않는다.)
 
 ## 데이터 전달
 
@@ -140,7 +143,8 @@ assets/photos/       manifest.json (사진 원장) · place/ · concept/
 | 사진이 CC BY-SA | 세트는 완성하되 **발행 판정을 사용자에게 넘긴다.** 사진 위에 타입을 얹으면 카드가 2차적 저작물이라 동일 라이선스 배포 의무가 붙는다 |
 | 주제의 사진 재고 부족 | 카드 착수 전 보고. 문구를 먼저 짜고 사진을 나중에 찾으면 기획을 통째로 버린다 |
 | playwright 미설치 | 셋업 명령 실행. **프로젝트 루트에 package.json을 만들지 마라** — 저장소 Stop 훅이 없는 npm 스크립트를 돌려 매 턴 실패한다 |
-| Higgsfield 크레딧 부족 | Phase 4 중단, 사용자 보고. 품질을 낮춰 우회하지 마라 |
+| 릴스 렌더러가 ISSUE로 실패 | mp4가 안 나온다. 씬 HTML을 고쳐라. 검사를 끄지 마라 |
+| 릴스 발행 게이트가 INTERNAL 판정 | 정상이다. QA가 HOLD면 내부 시안까지만 나온다. 게이트를 우회하지 마라 |
 
 ## 완료 보고 형식
 

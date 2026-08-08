@@ -30,8 +30,10 @@ QA 전에 착수하면 틀린 사실이 영상에 박힌다. 수정 비용이 �
 
 ## 입력 / 출력
 
-**입력:** `output/cards/*.png`, `output/qa_report.md`, `_workspace/01_brief.json`, `_workspace/02_carousel.json`, `output/social.json`(캡션 원본)
+**입력:** `output/cards/*.png`(시각 참고용), `output/qa_report.md`, `_workspace/01_brief.json`, `_workspace/03_cards.html`(씬 카피는 반드시 여기서 축자 인용한다), `output/social.json`(캡션 원본)
 **출력:** `output/reels/scene_plan.md`, `reel.mp4`, `caption.txt`
+
+**`_workspace/02_carousel.json`은 입력이 아니다.** QA 3회차 교정(카드 06의 미보증 드롭·픽업 문장 삭제 등)을 승계하지 못해 낡았다 — 읽지 마라.
 
 ## 재호출 시 행동
 
